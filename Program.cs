@@ -1,13 +1,14 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Xml.XPath;
 using SimpleSOAPClient;
 using SimpleSOAPClient.Exceptions;
 using SimpleSOAPClient.Handlers;
 using SimpleSOAPClient.Helpers;
 using SimpleSOAPClient.Models;
-using SimpleSOAPClient.Models.Headers;
 using SimpleSOAPClient.Models.Headers.Oasis.Security;
+using System.Diagnostics;
 using System.Xml;
 using System.Xml.Serialization;
+using ConsoleApp1;
 
 //TODO: input NumberOfPeriods
 
@@ -15,18 +16,31 @@ Console.WriteLine("Updating history with prior quarter data from the CDR...");
 Console.WriteLine("1. Logging on to CDR: ");
 
 var res = await GetInstanceData();
-if (res.Success)
+string period = "2022";
+string contextRef = "CI_2631314_2005-03-31";
+string appFolder = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
+string instanceFile = Path.Combine(appFolder, period + "-Instance.txt");
+
+//if (res.Success)
 {
     Console.WriteLine("3. Processing CDR Data: ");
 
+    using (StreamWriter sr = new StreamWriter(instanceFile))
+    //while (true)
+    {
+        //TODO
+    }
+    Console.WriteLine("Completed");
+    Console.WriteLine("CDR Live Update: Successful");
+    Console.WriteLine("Prior quarter history data has been downloaded successfully.");
 }
-else
+//else
 {
-    Console.WriteLine(res.Message); //errmsgFailed to deserialize the XML string to a SOAP Envelope'
-
+    //Console.WriteLine(res.Message); //errmsgFailed to deserialize the XML string to a SOAP Envelope'
 }
 
-//TODO: endit section
+//TODO:endit section
+//if error downloading the file check if already exists and console.writeline already exists or Update History was not completed
 
 SoapClient PrepareClient()
 {
@@ -35,7 +49,7 @@ SoapClient PrepareClient()
           {
               OnSoapEnvelopeRequestAsyncAction = async (c, d, cancellationToken) =>
               {
-                  //          d.Envelope.WithHeaders(
+                  // d.Envelope.WithHeaders(
                   //KnownHeader.Oasis.Security.UsernameTokenAndPasswordText(
                   //    "some-user", "some-password"));
               },
@@ -64,8 +78,9 @@ async Task<XBRLDownloadResult> GetInstanceData()
 
     using (var client = PrepareClient())
     {
+
         var requestEnvelope =
-             SoapEnvelope.Prepare().Body(new GetInstanceData());
+             SoapEnvelope.Prepare().Body(TestInput.TestRequest);
 
         CancellationToken ct = new();
 
@@ -91,11 +106,51 @@ async Task<XBRLDownloadResult> GetInstanceData()
 
         try
         {
-            var response = responseEnvelope.Body<DummyResponse>();
-            if (response.Res is string)
+            var response = responseEnvelope.Body<GetInstanceDataResponse>();
+            if (response.GetInstanceDataResult is string)
             {
-                string a = response.Res.Replace("&gt;", ">").Replace("&lt;", "<");
-                CdrServiceGetInstanceData dr = new XmlSerializer(typeof(CdrServiceGetInstanceData)).Deserialize(new StringReader(a)) as CdrServiceGetInstanceData;
+                string instanceXml = response.GetInstanceDataResult.Replace("&gt;", ">").Replace("&lt;", "<");
+                XmlDocument doc = new XmlDocument();
+                doc.LoadXml(TestInputGetInstanceResponse.Test3);
+
+                XPathNavigator n = doc.CreateNavigator();
+
+                XmlNamespaceManager m = new XmlNamespaceManager(n.NameTable);
+                m.AddNamespace("cc", "http://www.ffiec.gov/xbrl/call/concepts");
+
+                if (n.Evaluate("//cc:*", m) is XPathNodeIterator ccElements)
+                    while (ccElements.MoveNext())
+                    {
+                        var mtContextRef = ccElements.Current.GetAttribute("contextRef", string.Empty);
+
+                        if (ccElements.Current.MoveToChild(XPathNodeType.Text))
+                        {
+                            if (bool.TryParse(ccElements.Current.Value, out bool mtBool))
+                            {
+                                ccElements.Current.MoveToParent();
+                                Console.WriteLine(mtContextRef + " -> " + mtBool.ToString());
+                            }
+                            else
+                            {
+                                ccElements.Current.MoveToParent();
+                                var mtText = ccElements.Current.Value;
+                                var mtMdrm = ccElements.Current.Name;
+                                var mtUnitRef = ccElements.Current.GetAttribute("unitRef", string.Empty);
+                                var mtDecimals = ccElements.Current.GetAttribute("decimals", string.Empty);
+                                Console.Write(mtContextRef + " -> " + mtText);
+                                Console.Write(" mtMdrm=" + mtMdrm);
+                                Console.Write(" mtUnitRef=" + mtUnitRef);
+                                Console.Write(" mtUnitRef=" + mtUnitRef);
+                                Console.WriteLine(" mtDecimals=" + mtDecimals);  
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("no text child node?");
+                        }
+                    }
+                //CdrServiceGetInstanceData dr = new  (typeof(CdrServiceGetInstanceData)).Deserialize(new StringReader(a)) as CdrServiceGetInstanceData;
+                Console.WriteLine("dummy");
             }
             if (response.Outputs?.ErrorCode is int)
             {
@@ -147,25 +202,25 @@ enum Code
     Error
 }
 
-[XmlRoot("DummyRequestRoot", Namespace = "http://ffiec.gov/cdr/services/")]
+[XmlRoot("GetInstanceData", Namespace = "http://ffiec.gov/cdr/services/")]
 public class GetInstanceData
 {
     [XmlElement("userName")]
-    public bool Username { get; set; }
+    public string Username { get; set; }
     [XmlElement("password")]
     public string Password { get; set; }
     [XmlElement("dataSeriesName")]
-    public string DSN { get; set; }
+    public string DataSeriesName { get; set; }
     [XmlElement("reportingPeriodEndDate")]
-    public string RPED { get; set; }
+    public DateTime ReportingPeriodEndDate { get; set; }
     [XmlElement("id_rssd")]
-    public string RSSD { get; set; }
+    public string IdRssd { get; set; }
     [XmlElement("numberOfPriorPeriods")]
-    public string nop { get; set; }
+    public int NumberOfPriorPeriods { get; set; }
 }
 
 [XmlRoot("GetInstanceDataResponse", Namespace = "http://ffiec.gov/cdr/services/")]
-public class DummyResponse
+public class GetInstanceDataResponse
 {
     [XmlElement("Inputs")]
     public Inputs Inputs { get; set; }
@@ -174,19 +229,7 @@ public class DummyResponse
     public Outputs? Outputs { get; set; }
 
     [XmlElement("GetInstanceDataResult")]
-    public string Res { get; set; }
-}
-
-
-[XmlRoot("CdrServiceGetInstanceData", Namespace = "http://Cdr.Business.Workflow.Schemas.CdrServiceGetInstanceData")]
-public class CdrServiceGetInstanceData
-{
-    [XmlElement("Inputs", Namespace = "")]
-    public Inputs Inputs { get; set; }
-
-    [XmlElement("Outputs", Namespace = "")]
-    public Outputs? Outputs { get; set; }
-
+    public string GetInstanceDataResult { get; set; }
 }
 
 public class Inputs
