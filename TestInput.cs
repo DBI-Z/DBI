@@ -2,8 +2,8 @@
 {
     internal class TestInput
     {
-        public static GetInstanceData TestRequest =>
-            new GetInstanceData
+        public static GetInstanceRequest TestRequest =>
+            new GetInstanceRequest
             {
                 Username = "DBIFINAN2",
                 Password = "Testingnewcode7~",

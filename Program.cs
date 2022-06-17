@@ -4,25 +4,83 @@ using SimpleSOAPClient.Exceptions;
 using SimpleSOAPClient.Handlers;
 using SimpleSOAPClient.Helpers;
 using SimpleSOAPClient.Models;
-using SimpleSOAPClient.Models.Headers.Oasis.Security;
 using System.Diagnostics;
 using System.Xml;
 using System.Xml.Serialization;
 using ConsoleApp1;
 using System.Text;
+using System.Globalization;
 
-//TODO: input NumberOfPeriods
+const string dateFormat = "yyyy-MM-dd";
 
+GetInstanceRequest param;
+if (args.Length == 0)
+{
+    param = TestInput.TestRequest;
+    PrintArgs(param);
+}
+else
+{
+    const int expectedArgCount = 6;
+    if (args.Length != expectedArgCount)
+    {
+        param = null;
+        Console.WriteLine("There should be exactly " + expectedArgCount + " arguments. Example:");
+        PrintArgs(TestInput.TestRequest);
+        return -1;
+    }
+    else
+    {
+        var cmdLineInput = new GetInstanceRequest
+        {
+            Username = args[0],
+            Password = args[1],
+            DataSeriesName = args[2],
+            IdRssd = args[3]
+        };
+        if (int.TryParse(args[4], out int periods))cmdLineInput.NumberOfPriorPeriods = periods;
+        else 
+        {
+            Console.WriteLine("NumberOfPriorPeriods should be a number. Example:");
+            PrintArgs(TestInput.TestRequest);
+            return -1;
+        }
+        if (DateTime.TryParseExact(args[5], dateFormat, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out DateTime endDate)) cmdLineInput.ReportingPeriodEndDate = endDate;
+        else
+        {
+            Console.WriteLine($"ReportingPeriodEndDate should have date format {dateFormat}. Example:");
+            PrintArgs(TestInput.TestRequest);
+            return -1;
+        }
+        param = cmdLineInput;
+    }
+}
+
+void PrintArgs(GetInstanceRequest args)
+{
+    string exeName = Process.GetCurrentProcess().MainModule.ModuleName;
+    Console.Write(exeName + " ");
+    Console.Write(args.Username + " ");
+    Console.Write(args.Password + " ");
+    Console.Write(args.DataSeriesName + " ");
+    Console.Write(args.IdRssd + " ");
+    Console.Write(args.NumberOfPriorPeriods + " ");
+    Console.Write(args.ReportingPeriodEndDate.ToString(dateFormat) + " ");
+    Console.WriteLine(string.Empty);
+    Console.WriteLine($"{exeName} Username Password DataSeriesName IdRSSD NumberOfPriorPeriods ReportingPeriodEndDate");
+}
+
+Console.WriteLine(string.Empty);
 Console.WriteLine("Updating history with prior quarter data from the CDR...");
 Console.WriteLine("1. Logging on to CDR: ");
 
-string contextRef = "CI_2631314_2005-03-31"; //TODO:input?
-string period = "2022"; //TODO: input?
+const int numberOfPeriods = 6;
+const string contextRef = "CI_2631314_2005-03-31"; //TODO:input?
+const string period = "2022"; //TODO: input?
 string appFolder = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
 string instanceFileName = Path.Combine(appFolder, period + "-Instance.txt");
 
-
-string instanceXmlText = await GetInstanceData();
+string instanceXmlText = await GetInstanceData(param);
 if (string.IsNullOrWhiteSpace(instanceXmlText))
 {
     AskPreviousFile();
@@ -58,7 +116,7 @@ void AskPreviousFile()
         Console.WriteLine("Do you want to continue Updating History with this prior quarter data? Y/N");
         string yn = Console.ReadLine();
 
-        Func<bool> isaYes = () => string.Compare("Y", yn?.Trim(), ignoreCase: true)== 0;
+        Func<bool> isaYes = () => string.Compare("Y", yn?.Trim(), ignoreCase: true) == 0;
         Func<bool> isaNo = () => string.Compare("N", yn?.Trim(), ignoreCase: true) == 0;
 
         while (!isaYes())
@@ -70,9 +128,9 @@ void AskPreviousFile()
     }
     else
     {
-        Console.WriteLine("Update History was not completed."); 
-    }  
-} 
+        Console.WriteLine("Update History was not completed.");
+    }
+}
 SoapClient PrepareClient()
 {
 
@@ -128,10 +186,10 @@ async Task<SoapEnvelope> GetResponse(SoapClient client, SoapEnvelope requestEnv)
     return null;
 }
 
-async Task<string> GetInstanceData()
+async Task<string> GetInstanceData(GetInstanceRequest param)
 {
     var requestEnvelope =
-                SoapEnvelope.Prepare().Body(TestInput.TestRequest);
+                SoapEnvelope.Prepare().Body(param);
     SoapEnvelope responseEnvelope = null;
     using (var client = PrepareClient())
         responseEnvelope = await GetResponse(client, requestEnvelope);
@@ -209,7 +267,7 @@ List<WriteFormat> DeserializeRecords(XPathNodeIterator ccElements)
             {
                 ccElements.Current.MoveToParent();
                 Console.WriteLine(mtContextRef + " -> " + mtBool.ToString());
-                  
+
                 wf.Add(new WriteFormat
                 {
                     MtData = mtBool.ToString(),
@@ -278,8 +336,10 @@ string PrepareMsg(string responseErrorMessage)
     return sb.ToString();
 }
 
+return 0;
+
 [XmlRoot("GetInstanceData", Namespace = "http://ffiec.gov/cdr/services/")]
-public class GetInstanceData
+public class GetInstanceRequest
 {
     [XmlElement("userName")]
     public string Username { get; set; }
@@ -332,7 +392,7 @@ public class Outputs
 
 class WriteFormat
 {
-    public string MtMdrm {   get; set; }
+    public string MtMdrm { get; set; }
     public string MtUnitRef { get; set; }
     public string MtDecimals { get; set; }
     public string MtContextRef { get; set; }
