@@ -47,7 +47,6 @@ else
 	}
 }
 
-new InstanceGetter(new InstanceDownloader(), new InstanceFileWriter()).Do(param);
 
 
 void PrintArgs(GetInstanceRequest args)
@@ -67,6 +66,7 @@ void PrintArgs(GetInstanceRequest args)
 Console.WriteLine(string.Empty);
 Console.WriteLine("Updating history with prior quarter data from the CDR...");
 Console.WriteLine("1. Logging on to CDR: ");
+await new InstanceGetter(new InstanceDownloader(), new InstanceFileWriter()).Do(param);
 
 return 0;
 

@@ -3,6 +3,8 @@ using SimpleSOAPClient.Exceptions;
 using SimpleSOAPClient.Helpers;
 using SimpleSOAPClient.Models;
 using System.Text;
+using System.Xml;
+using System.Xml.XPath;
 
 namespace GetInstance
 {
@@ -20,47 +22,26 @@ namespace GetInstance
 			else
 				try
 				{
-					var response = responseEnvelope.Body<GetInstanceDataResponse>();
-					Console.WriteLine(response.GetInstanceDataResult);
+					XPathNavigator nav = responseEnvelope.Body.Value.CreateNavigator();
+					XmlNamespaceManager m = new(nav.NameTable);
 
-					if (response.Outputs?.ErrorCode is int)
-					{
-						bool successResponse = response.Outputs.ErrorMessage is string &&
-														!string.IsNullOrWhiteSpace(response.Outputs.ErrorMessage);
-						if (successResponse)
-						{
-							if (response.GetInstanceDataResult is string)
-							{
-								string instanceXml = response.GetInstanceDataResult.Replace("&gt;", ">").Replace("&lt;", "<");
-								return instanceXml;
+					m.AddNamespace(string.Empty, "http://Cdr.Business.Workflow.Schemas.CdrServiceSubmitInstanceData");
+					XPathNodeIterator it = nav.Evaluate("/GetInstanceDataResult/CdrServiceGetInstanceData") as XPathNodeIterator;
 
-								//open a file for text output
-								//conceptRecord write format  Write #IFN, MT_MDRM, MT_ContextRef, "", "0", MT_Data
-								//otherRecord writeFormat     Write #IFN, MT_MDRM, MT_ContextRef, MT_UnitRef, MT_Decimals, MT_Data
-							}
-							else
-							{
-								Console.WriteLine("Error: " + nameof(response.GetInstanceDataResult) + " element not found in the response XML");
-								return null;
-							}
-						}
-						else
-						{
-							Console.WriteLine("Error contacting CDR: Process aborted");
-							Console.Write(PrepareMsg(response.Outputs.ErrorMessage));
-							return null;
-						}
-					}
-					else
+					if (it == null || !it.MoveNext())
 					{
 						Console.WriteLine("Live CDR Update Error B: ");
 						return null;
 					}
+					else
+					{
+						return cdrXml = it.Current.Value.Replace("&gt;", ">").Replace("&lt;", "<");
+					}
 				}
-				catch (FaultException e)
+				catch (Exception e)
 				{
-					//   Logger.LogError(e, $"The server returned a fault [Code={e.Code}, String={e.String}, Actor={e.Actor}]");
-					throw;
+					Console.WriteLine(e.Message);
+					return null;
 				}
 		}
 
