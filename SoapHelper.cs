@@ -2,7 +2,7 @@
 using SimpleSOAPClient.Handlers;
 using SimpleSOAPClient.Helpers;
 
-namespace ConsoleApp1
+namespace GetInstance
 {
     internal class SoapHelper
     {
