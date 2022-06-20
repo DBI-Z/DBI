@@ -1,7 +1,7 @@
 {
   "profiles": {
     "WSL": {
-      "commandName": "WSL2",
+      "commandName": "Project",
       "environmentVariables": {},
       "distributionName": ""
     },
@@ -9,8 +9,12 @@
       "commandName": "Project",
       "commandLineArgs": "a b c d"
     },
-    "use defualt param": {
+    "use default param": {
       "commandName": "Project"
+    },
+    "cmdline param": {
+      "commandName": "Project",
+      "commandLineArgs": "1 2 3 4 5 2022-10-03"
     }
   }
 }
