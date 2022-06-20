@@ -1,7 +1,9 @@
-﻿namespace GetInstance
+﻿using System.Xml.Linq; 
+
+namespace GetInstance
 {
     internal interface IInstanceDownloader
     {
-        Task<string> Download(GetInstanceRequest param);
+        Task<XDocument> Download(GetInstanceRequest param);
     }
 }

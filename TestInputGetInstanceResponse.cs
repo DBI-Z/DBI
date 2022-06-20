@@ -60,6 +60,12 @@
                 <cc:RCONG323 contextRef=""CI_141958_2020-03-31"" unitRef=""USD"" decimals=""0"">0</cc:RCONG323>
                 <cc:RCON3506 contextRef=""CI_141958_2020-03-31"" unitRef=""USD"" decimals=""0"">0</cc:RCON3506>
                 <cc:RCONKX18 contextRef=""CI_141958_2020-03-31"">false</cc:RCONKX18>
-            </xbrl>"; 
-    }
+            </xbrl>";
+
+  public static string Test4 = @"<?xml version=""1.0""?>
+   <GetInstanceDataResponse xmlns=""http://ffiec.gov/cdr/services"">
+   <GetInstanceDataResult>
+   </GetInstanceDataResult>
+   </GetInstanceDataResponse>";
+  }
 }

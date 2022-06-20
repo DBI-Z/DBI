@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Xml;
+using System.Xml.Linq;
 using System.Xml.Serialization;
 using System.Xml.XPath;
 
@@ -23,20 +24,21 @@ namespace GetInstance
 			const string period = "2022"; //TODO: input?
 			string appFolder = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
 			string instanceFileName = Path.Combine(appFolder, period + "-Instance.txt");
-			string instanceXmlText = await downloader.Download(param);
+			XDocument responseBody = await downloader.Download(param);
+			Console.WriteLine(responseBody.ToString());
+			List<XDocument> instances = ExtractInstance(responseBody);
+
 			Console.WriteLine("3. Processing CDR Data: ");
 
-			if (string.IsNullOrWhiteSpace(instanceXmlText))
+			if (instances == null || instances.Count == 0)
 			{
-				AskPreviousFile();
+				AskPreviousFile(instanceFileName);
 			}
 			else
 			{
-				XmlDocument instanceXml = new XmlDocument();
-				instanceXml.LoadXml(instanceXmlText);
-				XPathNodeIterator ccRecordsIterator = GetCCIterator(instanceXml);
-				if (CheckErrorCode(instanceXml))
+				foreach (XDocument instanceXml in instances)
 				{
+					XPathNodeIterator ccRecordsIterator = GetCCIterator(instanceXml);
 					List<WriteFormat> wf = DeserializeRecords(ccRecordsIterator);
 					writer.Write(records: wf, instanceFileName);
 					Console.WriteLine("Completed");
@@ -46,7 +48,7 @@ namespace GetInstance
 			}
 		}
 
-		XPathNodeIterator GetCCIterator(XmlDocument doc)
+		XPathNodeIterator GetCCIterator(XDocument doc)
 		{
 			XPathNavigator n = doc.CreateNavigator();
 			XmlNamespaceManager m = new XmlNamespaceManager(n.NameTable);
@@ -54,39 +56,7 @@ namespace GetInstance
 			return n.Evaluate("//cc:*", m) as XPathNodeIterator;
 		}
 
-		bool CheckErrorCode(XmlDocument root)
-		{
-			var nav = root.CreateNavigator();
-			var it = nav.Evaluate("/CdrServicecGetInstanceData/Outputs/ErrorCode") as XPathNodeIterator;
-
-			if (it == null || !it.MoveNext())
-			{
-				Console.WriteLine("Live CDR Update Error B: ");
-				return false;
-			}
-			else
-			{
-				if (it.Current.ValueAsInt == 0)
-				{
-					return true;
-				}
-				else
-				{
-					it = nav.Evaluate("/CdrServiceGetInstanceData/Outputs/ErrorMessage") as XPathNodeIterator;
-					if (it == null || !it.MoveNext())
-					{
-						Console.WriteLine("Live CDR Update Error B: ");
-						return null;
-					}
-					else
-					{
-
-					}
-				}
-			}
-
-		}
-		void AskPreviousFile()
+		void AskPreviousFile(string instanceFileName)
 		{
 			if (File.Exists(instanceFileName))
 			{
@@ -114,87 +84,138 @@ namespace GetInstance
 				Console.WriteLine("Update History was not completed.");
 			}
 		}
-	}
-	List<WriteFormat> DeserializeRecords(XPathNodeIterator ccElements)
-	{
-		List<WriteFormat> wf = new();
 
-		while (ccElements.MoveNext())
+		List<WriteFormat> DeserializeRecords(XPathNodeIterator ccElements)
 		{
-			var mtContextRef = ccElements.Current.GetAttribute("contextRef", string.Empty);
+			List<WriteFormat> wf = new();
 
-			if (ccElements.Current.MoveToChild(XPathNodeType.Text))
+			while (ccElements.MoveNext())
 			{
-				bool isConceptDataRecord = bool.TryParse(ccElements.Current.Value, out bool mtBool);
-				if (isConceptDataRecord)
-				{
-					ccElements.Current.MoveToParent();
-					Console.WriteLine(mtContextRef + " -> " + mtBool.ToString());
+				var mtContextRef = ccElements.Current.GetAttribute("contextRef", string.Empty);
 
-					wf.Add(new WriteFormat
+				if (ccElements.Current.MoveToChild(XPathNodeType.Text))
+				{
+					bool isConceptDataRecord = bool.TryParse(ccElements.Current.Value, out bool mtBool);
+					if (isConceptDataRecord)
 					{
-						MtData = mtBool.ToString(),
-						MtContextRef = mtContextRef
-					}); ;
+						ccElements.Current.MoveToParent();
+						Console.WriteLine(mtContextRef + " -> " + mtBool.ToString());
+
+						wf.Add(new WriteFormat
+						{
+							MtData = mtBool.ToString(),
+							MtContextRef = mtContextRef
+						}); ;
+					}
+					else
+					{
+						ccElements.Current.MoveToParent();
+						string? mtText = ccElements.Current.Value;
+						string? mtMdrm = ccElements.Current.LocalName;
+						string? mtUnitRef = ccElements.Current.GetAttribute("unitRef", string.Empty);
+						string? mtDecimals = ccElements.Current.GetAttribute("decimals", string.Empty);
+
+						wf.Add(new WriteFormat
+						{
+							MtDecimals = mtDecimals,
+							MtData = mtText,
+							MtMdrm = mtMdrm,
+							MtUnitRef = mtUnitRef,
+							MtContextRef = mtContextRef
+						});
+					}
 				}
 				else
 				{
-					ccElements.Current.MoveToParent();
-					string? mtText = ccElements.Current.Value;
-					string? mtMdrm = ccElements.Current.LocalName;
-					string? mtUnitRef = ccElements.Current.GetAttribute("unitRef", string.Empty);
-					string? mtDecimals = ccElements.Current.GetAttribute("decimals", string.Empty);
-
-					wf.Add(new WriteFormat
-					{
-						MtDecimals = mtDecimals,
-						MtData = mtText,
-						MtMdrm = mtMdrm,
-						MtUnitRef = mtUnitRef,
-						MtContextRef = mtContextRef
-					});
+					Console.WriteLine("no text child node?");
 				}
 			}
-			else
+
+			return wf;
+		}
+		List<XDocument> ExtractInstance(XDocument responseBody)
+		{
+			if (responseBody == null)
+				return null;
+
+			//XDocument mock;
+			//using (var sr = new StringReader(TestInputGetInstanceResponse.Test4))
+			//mock = XDocument.Load(sr);
+			//XPathNavigator nav = mock.CreateNavigator();
+
+			XPathNavigator responseBodyNav = responseBody.CreateNavigator();
+			XmlNamespaceManager m = new(responseBodyNav.NameTable);
+			//m.AddNamespace(string.Empty, "http://Cdr.Business.Workflow.Schemas.CdrServiceGetInstanceData");
+			m.AddNamespace("def", "http://ffiec.gov/cdr/services/");
+
+			//XPathNodeIterator it = nav.Evaluate("/", m) as XPathNodeIterator;
+			//XPathNodeIterator it = nav.Evaluate("/def:GetInstanceDataResponse",m ) as XPathNodeIterator;
+
+			XPathNavigator getInstanceDataResult = responseBodyNav.SelectSingleNode("/def:GetInstanceDataResponse/def:GetInstanceDataResult", m);
+
+			if (getInstanceDataResult == null)
+				return null;
+
+			XDocument cdrResult = XDocument.Load(new StringReader(getInstanceDataResult.Value));
+			XPathNavigator cdrNav = cdrResult.CreateNavigator();
+			m = new(cdrNav.NameTable);
+			m.AddNamespace("def", "http://Cdr.Business.Workflow.Schemas.CdrServiceGetInstanceData");
+			//using (var sr = new StringReader(TestInputGetInstanceResponse.Test4))
+			//var aaa = instance.SelectSingleNode("/*", m);
+			if (cdrNav.SelectSingleNode("/def:CdrServiceGetInstanceData/Outputs", m) is not XPathNavigator cdrOutputs)
+				return null;
+
+			try
 			{
-				Console.WriteLine("no text child node?");
+				int? success = 0;
+				int? errorCode = cdrOutputs.SelectSingleNode("ErrorCode", m)?.ValueAsInt;
+				if (errorCode != success)
+				{
+					string errorMessage = cdrOutputs.SelectSingleNode("ErrorMessage", m)?.Value;
+					Console.WriteLine("ErrorCode: " + errorCode);
+					Console.WriteLine("ErrorMessage: " + errorMessage);
+					return null;
+				}
+				else
+				{
+					List<XDocument> results = new List<XDocument>();
+					XPathNodeIterator instances = cdrOutputs.Select("InstanceDocuments/*");
+					foreach (var instance in instances)
+					{
+						XDocument doc = new XDocument();
+					}
+					return results;
+				}
+			}
+			catch (Exception ex)
+			{
+				if (ex is InvalidCastException || ex is FormatException)
+				{
+					Console.WriteLine(ex.Message);
+					Console.WriteLine("Unable to parse ErrorCode: " + cdrNav.SelectSingleNode("/def:CdrServiceGetInstanceData/Outputs/ErrorCode", m)?.Value);
+				}
+				return null;
 			}
 		}
+	}
 
-		return wf;
+	[XmlRoot("GetInstanceData", Namespace = "http://ffiec.gov/cdr/services/")]
+	public class GetInstanceRequest
+	{
+		[XmlElement("userName")]
+		public string Username { get; set; }
+		[XmlElement("password")]
+		public string Password { get; set; }
+		[XmlElement("dataSeriesName")]
+		public string DataSeriesName { get; set; }
+		[XmlElement("reportingPeriodEndDate")]
+		public DateTime ReportingPeriodEndDate { get; set; }
+		[XmlElement("id_rssd")]
+		public string IdRssd { get; set; }
+		[XmlElement("numberOfPriorPeriods")]
+		public int NumberOfPriorPeriods { get; set; }
 	}
 }
-}
-
-[XmlRoot("GetInstanceData", Namespace = "http://ffiec.gov/cdr/services/")]
-public class GetInstanceRequest
-{
-	[XmlElement("userName")]
-	public string Username { get; set; }
-	[XmlElement("password")]
-	public string Password { get; set; }
-	[XmlElement("dataSeriesName")]
-	public string DataSeriesName { get; set; }
-	[XmlElement("reportingPeriodEndDate")]
-	public DateTime ReportingPeriodEndDate { get; set; }
-	[XmlElement("id_rssd")]
-	public string IdRssd { get; set; }
-	[XmlElement("numberOfPriorPeriods")]
-	public int NumberOfPriorPeriods { get; set; }
-}
-
-//[XmlRoot("GetInstanceDataResponse", Namespace = "http://ffiec.gov/cdr/services/")]
-//public class GetInstanceDataResponse
-//{
-//	//[XmlElement("Inputs")]
-//	//public Inputs Inputs { get; set; }
-
-//	//[XmlElement("Outputs")]
-//	//public Outputs? Outputs { get; set; }
-
-//	[XmlElement("GetInstanceDataResult")]
-//	public string GetInstanceDataResult { get; set; }
-//}
 
 public class Inputs
 {

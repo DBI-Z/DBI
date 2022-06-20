@@ -4,45 +4,21 @@ using SimpleSOAPClient.Helpers;
 using SimpleSOAPClient.Models;
 using System.Text;
 using System.Xml;
+using System.Xml.Linq;
 using System.Xml.XPath;
 
 namespace GetInstance
 {
 	internal class InstanceDownloader : IInstanceDownloader
 	{
-		public async Task<string> Download(GetInstanceRequest param)
+		public async Task<XDocument> Download(GetInstanceRequest param)
 		{
-			var requestEnvelope =
-															SoapEnvelope.Prepare().Body(param);
+			var requestEnvelope = SoapEnvelope.Prepare().Body(param);
 			SoapEnvelope responseEnvelope = null;
 			using (var client = new SoapHelper().GetInstance())
 				responseEnvelope = await GetResponse(client, requestEnvelope);
-
-			if (responseEnvelope == null) return null;
-			else
-				try
-				{
-					XPathNavigator nav = responseEnvelope.Body.Value.CreateNavigator();
-					XmlNamespaceManager m = new(nav.NameTable);
-
-					m.AddNamespace(string.Empty, "http://Cdr.Business.Workflow.Schemas.CdrServiceSubmitInstanceData");
-					XPathNodeIterator it = nav.Evaluate("/GetInstanceDataResult/CdrServiceGetInstanceData") as XPathNodeIterator;
-
-					if (it == null || !it.MoveNext())
-					{
-						Console.WriteLine("Live CDR Update Error B: ");
-						return null;
-					}
-					else
-					{
-						return cdrXml = it.Current.Value.Replace("&gt;", ">").Replace("&lt;", "<");
-					}
-				}
-				catch (Exception e)
-				{
-					Console.WriteLine(e.Message);
-					return null;
-				}
+			XDocument responseBody = new(responseEnvelope.Body.Value);
+			return responseBody;
 		}
 
 		string PrepareMsg(string responseErrorMessage)

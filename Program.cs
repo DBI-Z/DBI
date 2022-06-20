@@ -47,8 +47,6 @@ else
 	}
 }
 
-
-
 void PrintArgs(GetInstanceRequest args)
 {
 	string exeName = Process.GetCurrentProcess().MainModule.ModuleName;
@@ -70,9 +68,6 @@ await new InstanceGetter(new InstanceDownloader(), new InstanceFileWriter()).Do(
 
 return 0;
 
-//conceptRecord write format  Write #IFN, MT_MDRM, MT_ContextRef, "", "0", MT_Data
-//otherRecord writeFormat Write #IFN, MT_MDRM, MT_ContextRef, MT_UnitRef, MT_Decimals, MT_Data
-
 class WriteFormat
 {
 	public string MtMdrm { get; set; }
@@ -80,14 +75,5 @@ class WriteFormat
 	public string MtDecimals { get; set; }
 	public string MtContextRef { get; set; }
 	public string MtData { get; set; }
-
-	//??
-	//currentPeriod = InStr(contextRef, Period)
-	//mtData = contextRef.IndexOf(Period) > -1 ? "Y" : "true;
-	//mtData = contextRef.IndexOf(Period) > -1 ? "N" : "false";
-	//??
-	//									  currentPeriod = InStr(contextRef, Period)
-	//GetRowCol 0, "PERIOD", 1, SheetName, SheetNum, CRow, CCol, CValue, CText
-	//Period = Trim(CText)
 }
 
