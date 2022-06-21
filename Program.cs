@@ -35,6 +35,7 @@ else
 			Console.WriteLine("NumberOfPriorPeriods should be a number. Example:");
 			PrintArgs(TestInput.TestRequest);
 			return -1;
+
 		}
 		if (DateTime.TryParseExact(args[5], dateFormat, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out DateTime endDate)) cmdLineInput.ReportingPeriodEndDate = endDate;
 		else

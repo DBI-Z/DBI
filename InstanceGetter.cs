@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Text;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Serialization;
@@ -18,13 +19,12 @@ namespace GetInstance
 		}
 
 		public async Task Do(GetInstanceRequest param)
-		{
-			const int numberOfPeriods = 6;
-			const string contextRef = "CI_2631314_2005-03-31"; //TODO:input?
+		{ 
 			const string period = "2022"; //TODO: input?
 			string appFolder = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
 			string instanceFileName = Path.Combine(appFolder, period + "-Instance.txt");
 			XDocument responseBody = await downloader.Download(param);
+		 
 			Console.WriteLine(responseBody.ToString());
 			List<XDocument> instances = ExtractInstance(responseBody);
 
@@ -32,6 +32,7 @@ namespace GetInstance
 
 			if (instances == null || instances.Count == 0)
 			{
+				string interpretedErrorMessage = PrepareMsg(responseBody.ToString());
 				AskPreviousFile(instanceFileName);
 			}
 			else
@@ -46,6 +47,41 @@ namespace GetInstance
 					Console.WriteLine("Prior quarter history data has been downloaded successfully.");
 				}
 			}
+		}
+
+		string PrepareMsg(string responseErrorMessage)
+		{
+			const int defaultErrorCode = 6;
+			(string phrase, int code)[] errorPhrases = new[]
+			{
+																("not authorized",1 ),
+																("not match",2 ),
+																("Access denied",3 ),
+																("ID_RSSD",4 )
+												};
+
+			StringBuilder sb = new();
+
+			int errorCode = defaultErrorCode;
+			for (int i = 0; i < errorPhrases.Length; i++)
+				if (responseErrorMessage.IndexOf(errorPhrases[i].phrase) > 0)
+					errorCode = i;
+
+			sb.AppendLine("A problem was encountered while attempting to contact the CDR to download prior quarter history data.");
+			switch (errorCode)
+			{
+				case 1:
+				case 4:
+				case 6:
+					sb.AppendJoin("Error", errorCode, responseErrorMessage);
+					break;
+				case 2:
+				case 3:
+					sb.AppendLine("Invalid User Name or Password, or User is locked.");
+					break;
+			}
+			sb.AppendLine("Contact the FFIEC CDR Help Desk at toll-free (888)237-3111 for assistance.");
+			return sb.ToString();
 		}
 
 		XPathNodeIterator GetCCIterator(XDocument doc)
@@ -137,19 +173,9 @@ namespace GetInstance
 		{
 			if (responseBody == null)
 				return null;
-
-			//XDocument mock;
-			//using (var sr = new StringReader(TestInputGetInstanceResponse.Test4))
-			//mock = XDocument.Load(sr);
-			//XPathNavigator nav = mock.CreateNavigator();
-
 			XPathNavigator responseBodyNav = responseBody.CreateNavigator();
 			XmlNamespaceManager m = new(responseBodyNav.NameTable);
-			//m.AddNamespace(string.Empty, "http://Cdr.Business.Workflow.Schemas.CdrServiceGetInstanceData");
 			m.AddNamespace("def", "http://ffiec.gov/cdr/services/");
-
-			//XPathNodeIterator it = nav.Evaluate("/", m) as XPathNodeIterator;
-			//XPathNodeIterator it = nav.Evaluate("/def:GetInstanceDataResponse",m ) as XPathNodeIterator;
 
 			XPathNavigator getInstanceDataResult = responseBodyNav.SelectSingleNode("/def:GetInstanceDataResponse/def:GetInstanceDataResult", m);
 
@@ -180,9 +206,10 @@ namespace GetInstance
 				{
 					List<XDocument> results = new List<XDocument>();
 					XPathNodeIterator instances = cdrOutputs.Select("InstanceDocuments/*");
-					foreach (var instance in instances)
+					foreach (XPathNodeIterator instance in instances)
 					{
-						XDocument doc = new XDocument();
+						XDocument doc = new XDocument(instance.Current.Value);
+						results.Add(doc);
 					}
 					return results;
 				}
@@ -215,22 +242,4 @@ namespace GetInstance
 		[XmlElement("numberOfPriorPeriods")]
 		public int NumberOfPriorPeriods { get; set; }
 	}
-}
-
-public class Inputs
-{
-	[XmlElement("RSSD")]
-	public int RSSD;
-	[XmlElement("ReportingPeriodEndDate")]
-	public DateTime ReportingPeriodEndDate { get; set; }
-	[XmlElement("NumberOfPriorPeriods")]
-	public int NumberOfPriorPeriods { get; set; }
-}
-
-public class Outputs
-{
-	[XmlElement("ErrorCode")]
-	public int ErrorCode { get; set; }
-	[XmlElement("ErrorMessage")]
-	public string ErrorMessage { get; set; }
-}
+} 
