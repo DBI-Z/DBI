@@ -8,7 +8,7 @@ namespace GetInstance.Test
 		//private readonkly Mock<IInstanceDownloader> r = 
 
 		[Fact]
-		public async Task Download_Basic_Successful()
+		public void Download_Basic_Successful()
 		{
 			//Arrange
 			Mock<IInstanceDownloader> downloadStub = new Mock<IInstanceDownloader>();
@@ -31,6 +31,21 @@ namespace GetInstance.Test
 		[Fact]
 		public async Task Download_Write_Anydata()
 		{
+			//Arrange
+			Mock<IInstanceDownloader> downloadStub = new Mock<IInstanceDownloader>();
+			Mock<IInstanceWriter> writeStub = new Mock<IInstanceWriter>();
+			XDocument successfulInstanceDownloadResult = XDocument.Load(new StringReader(SuccessfulResponse.SoapBody));
+			downloadStub.Setup(a => a.Download(It.IsAny<GetInstanceRequest>())).ReturnsAsync(successfulInstanceDownloadResult);
+			writeStub.Setup(a => a.Write(It.Is<List<WriteFormat>>(b => b.Count == 150), It.IsAny<string>()));
+			var getter = new InstanceGetter(downloadStub.Object, writeStub.Object);
+
+			//Act
+			var getterResult = getter.Do(TestCredentials);
+
+
+			//Assert?
+			writeStub.Verify();
+			writeStub.Verify(a => a.Write(It.Is<List<WriteFormat>>(b => b.Count == 150), It.IsAny<string>()));
 
 		}
 

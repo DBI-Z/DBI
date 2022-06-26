@@ -29,7 +29,7 @@
         <InstanceDocuments>
           <InstanceDocument>";
 
-		const string xbrl = @"<xbrl>test</xbrl>";
+		const string xbrl = @"<xbrl xmlns=""http://www.xbrl.org/2003/instance"">test</xbrl>";
 
 		const string cdrFooter = @"
      </InstanceDocument>

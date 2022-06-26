@@ -44,7 +44,7 @@ namespace GetInstance
 					Console.WriteLine("Completed");
 					Console.WriteLine("CDR Live Update: Successful");
 					Console.WriteLine("Prior quarter history data has been downloaded successfully.");
-			}
+				}
 		}
 
 		string PrepareMsg(string responseErrorMessage)
@@ -171,32 +171,43 @@ namespace GetInstance
 		{
 			List<XDocument> instanceDocs = new();
 			if (responseBody?.Element(XName.Get("GetInstanceDataResponse", "http://ffiec.gov/cdr/services/"))
-				?.Element(XName.Get("GetInstanceDataResult", "http://ffiec.gov/cdr/services/"))
-				?.Element(XName.Get("CdrServiceGetInstanceData", "http://Cdr.Business.Workflow.Schemas.CdrServiceGetInstanceData"))
-				?.Element(XName.Get("Outputs")) is XElement outputs
-			)
+				?.Element(XName.Get("GetInstanceDataResult", "http://ffiec.gov/cdr/services/")) is XElement cdr)
 			{
-				bool IsSuccessfulGetInstance = int.TryParse(outputs.Value, out int errorCode) && errorCode == 0;
-				try
+				string cdrText = cdr.Value.Replace("&lt;", "<").Replace("&gt;", ">");
+				using (StringReader sr = new(cdrText))
+					cdr = XElement.Load(new StringReader(cdrText));
+				if (cdr.Name == XName.Get("CdrServiceGetInstanceData", "http://Cdr.Business.Workflow.Schemas.CdrServiceGetInstanceData") &&
+					cdr.Element(XName.Get("Outputs")) is XElement outputs)
 				{
-					if (IsSuccessfulGetInstance)
+					XElement returnCodeElement = outputs.Element("ReturnCode");
+					XElement errorCodeElement = outputs.Element("ErrorCode");
+					string codeText = (returnCodeElement ?? errorCodeElement)?.Value;
+					bool IsSuccessfulGetInstance = int.TryParse(codeText, out int code) && code == 0;
+					try
 					{
-						string errorMessage = outputs.Element(XName.Get("ErrorMessage"))?.Value;
-						Console.WriteLine("ErrorCode: " + errorCode);
-						Console.WriteLine("ErrorMessage: " + errorMessage);
+						if (IsSuccessfulGetInstance && outputs.Element(XName.Get("InstanceDocuments"))?.Elements("InstanceDocument") is IEnumerable<XElement> instances)
+						{
+							foreach (XElement instance in instances)
+								if (instance.Element(XName.Get("xbrl", "http://www.xbrl.org/2003/instance")) is XElement xbrl)
+									instanceDocs.Add(new XDocument(xbrl));
+						}
+						else
+						{
+							XElement returnMessageElement = outputs.Element("ReturnMessage");
+							XElement errorMessageElement = outputs.Element("ErrorMessage");
+							string message = (returnMessageElement ?? errorMessageElement)?.Value;
+							Console.WriteLine("Code: " + code);
+							Console.WriteLine("Message: " + message);
+						}
 					}
-					else
-						if (outputs.Element(XName.Get("InstanceDocuments"))?.Elements("InstanceDocuemnt") is IEnumerable<XElement> instances)
-						foreach (XElement instance in instances)
-							instanceDocs.Add(new XDocument(instance));
-				}
-				catch (Exception ex) when (ex is InvalidCastException || ex is FormatException)
-				{
-					Console.WriteLine("Unable to parse ErrorCode: " + errorCode);
-				}
-				catch (Exception ex)
-				{
-					Console.WriteLine(ex.Message);
+					catch (Exception ex) when (ex is InvalidCastException || ex is FormatException)
+					{
+						Console.WriteLine("Unable to parse ErrorCode: " + code);
+					}
+					catch (Exception ex)
+					{
+						Console.WriteLine(ex.Message);
+					}
 				}
 			}
 			return instanceDocs;
