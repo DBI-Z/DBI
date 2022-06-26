@@ -2,7 +2,7 @@
 
 namespace GetInstance
 {
-    internal interface IInstanceDownloader
+    public interface IInstanceDownloader
     {
         Task<XDocument> Download(GetInstanceRequest param);
     }

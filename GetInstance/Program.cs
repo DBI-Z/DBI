@@ -69,7 +69,7 @@ await new InstanceGetter(new InstanceDownloader(), new InstanceFileWriter()).Do(
 
 return 0;
 
-class WriteFormat
+public class WriteFormat
 {
 	public string MtMdrm { get; set; }
 	public string MtUnitRef { get; set; }

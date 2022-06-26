@@ -7,7 +7,7 @@ using System.Xml.XPath;
 
 namespace GetInstance
 {
-	internal class InstanceGetter
+	public class InstanceGetter
 	{
 		IInstanceWriter writer;
 		IInstanceDownloader downloader;
@@ -19,24 +19,23 @@ namespace GetInstance
 		}
 
 		public async Task Do(GetInstanceRequest param)
-		{ 
+		{
 			const string period = "2022"; //TODO: input?
 			string appFolder = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
 			string instanceFileName = Path.Combine(appFolder, period + "-Instance.txt");
 			XDocument responseBody = await downloader.Download(param);
-		 
+
 			Console.WriteLine(responseBody.ToString());
-			List<XDocument> instances = ExtractInstance(responseBody);
+			IEnumerable<XDocument> instances = ExtractInstance(responseBody);
 
 			Console.WriteLine("3. Processing CDR Data: ");
 
-			if (instances == null || instances.Count == 0)
+			if (instances == null || instances.Count() == 0)
 			{
 				string interpretedErrorMessage = PrepareMsg(responseBody.ToString());
 				AskPreviousFile(instanceFileName);
 			}
 			else
-			{
 				foreach (XDocument instanceXml in instances)
 				{
 					XPathNodeIterator ccRecordsIterator = GetCCIterator(instanceXml);
@@ -45,7 +44,6 @@ namespace GetInstance
 					Console.WriteLine("Completed");
 					Console.WriteLine("CDR Live Update: Successful");
 					Console.WriteLine("Prior quarter history data has been downloaded successfully.");
-				}
 			}
 		}
 
@@ -169,60 +167,39 @@ namespace GetInstance
 
 			return wf;
 		}
-		List<XDocument> ExtractInstance(XDocument responseBody)
+		IEnumerable<XDocument> ExtractInstance(XDocument responseBody)
 		{
-			if (responseBody == null)
-				return null;
-			XPathNavigator responseBodyNav = responseBody.CreateNavigator();
-			XmlNamespaceManager m = new(responseBodyNav.NameTable);
-			m.AddNamespace("def", "http://ffiec.gov/cdr/services/");
-
-			XPathNavigator getInstanceDataResult = responseBodyNav.SelectSingleNode("/def:GetInstanceDataResponse/def:GetInstanceDataResult", m);
-
-			if (getInstanceDataResult == null)
-				return null;
-
-			XDocument cdrResult = XDocument.Load(new StringReader(getInstanceDataResult.Value));
-			XPathNavigator cdrNav = cdrResult.CreateNavigator();
-			m = new(cdrNav.NameTable);
-			m.AddNamespace("def", "http://Cdr.Business.Workflow.Schemas.CdrServiceGetInstanceData");
-			//using (var sr = new StringReader(TestInputGetInstanceResponse.Test4))
-			//var aaa = instance.SelectSingleNode("/*", m);
-			if (cdrNav.SelectSingleNode("/def:CdrServiceGetInstanceData/Outputs", m) is not XPathNavigator cdrOutputs)
-				return null;
-
-			try
+			List<XDocument> instanceDocs = new();
+			if (responseBody?.Element(XName.Get("GetInstanceDataResponse", "http://ffiec.gov/cdr/services/"))
+				?.Element(XName.Get("GetInstanceDataResult", "http://ffiec.gov/cdr/services/"))
+				?.Element(XName.Get("CdrServiceGetInstanceData", "http://Cdr.Business.Workflow.Schemas.CdrServiceGetInstanceData"))
+				?.Element(XName.Get("Outputs")) is XElement outputs
+			)
 			{
-				int? success = 0;
-				int? errorCode = cdrOutputs.SelectSingleNode("ErrorCode", m)?.ValueAsInt;
-				if (errorCode != success)
+				bool IsSuccessfulGetInstance = int.TryParse(outputs.Value, out int errorCode) && errorCode == 0;
+				try
 				{
-					string errorMessage = cdrOutputs.SelectSingleNode("ErrorMessage", m)?.Value;
-					Console.WriteLine("ErrorCode: " + errorCode);
-					Console.WriteLine("ErrorMessage: " + errorMessage);
-					return null;
-				}
-				else
-				{
-					List<XDocument> results = new List<XDocument>();
-					XPathNodeIterator instances = cdrOutputs.Select("InstanceDocuments/*");
-					foreach (XPathNodeIterator instance in instances)
+					if (IsSuccessfulGetInstance)
 					{
-						XDocument doc = new XDocument(instance.Current.Value);
-						results.Add(doc);
+						string errorMessage = outputs.Element(XName.Get("ErrorMessage"))?.Value;
+						Console.WriteLine("ErrorCode: " + errorCode);
+						Console.WriteLine("ErrorMessage: " + errorMessage);
 					}
-					return results;
+					else
+						if (outputs.Element(XName.Get("InstanceDocuments"))?.Elements("InstanceDocuemnt") is IEnumerable<XElement> instances)
+						foreach (XElement instance in instances)
+							instanceDocs.Add(new XDocument(instance));
 				}
-			}
-			catch (Exception ex)
-			{
-				if (ex is InvalidCastException || ex is FormatException)
+				catch (Exception ex) when (ex is InvalidCastException || ex is FormatException)
+				{
+					Console.WriteLine("Unable to parse ErrorCode: " + errorCode);
+				}
+				catch (Exception ex)
 				{
 					Console.WriteLine(ex.Message);
-					Console.WriteLine("Unable to parse ErrorCode: " + cdrNav.SelectSingleNode("/def:CdrServiceGetInstanceData/Outputs/ErrorCode", m)?.Value);
 				}
-				return null;
 			}
+			return instanceDocs;
 		}
 	}
 
@@ -242,4 +219,4 @@ namespace GetInstance
 		[XmlElement("numberOfPriorPeriods")]
 		public int NumberOfPriorPeriods { get; set; }
 	}
-} 
+}

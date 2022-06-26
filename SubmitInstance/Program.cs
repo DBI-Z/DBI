@@ -63,7 +63,7 @@ return 0;
 void SuggestWebsiteOpen()
 {
 	Console.WriteLine("Live CDR Submit Error");
-	Console.WriteLine("Would you like to exit EasyCALL and try submitting your Call Report directly to the CDR website?");
+	Console.WriteLine("Would you like to exit EasyCALL and try submitting your Call Report directly to the CDR website? (Y/N)");
 
 	string yn = string.Empty;
 	Func<bool> isaYes = () => string.Compare("Y", yn?.Trim(), ignoreCase: true) == 0;
