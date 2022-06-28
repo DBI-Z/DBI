@@ -24,21 +24,19 @@ namespace GetInstance
 			XDocument responseBody = await downloader.Download(param);
 
 			Console.WriteLine(responseBody.ToString());
-			IEnumerable<XDocument> instances = ExtractInstance(responseBody);
-
-			Console.WriteLine("3. Processing CDR Data: ");
-
-			if (instances == null || instances.Count() == 0)
+			GetInstanceResponse response = new Cdr().ExtractResponse(responseBody);
+			bool IsSuccessfulGetInstance = response.Code == 0;
+			IEnumerable<XDocument> instances = null;
+			if (IsSuccessfulGetInstance)
 			{
-				string interpretedErrorMessage = PrepareMsg(responseBody.ToString());
-				AskPreviousFile("2022-Instance.txt");
-			}
-			else
-			{
-				foreach (XDocument instanceXml in instances)
+				Console.WriteLine("3. Processing CDR Data: ");
+
+				IEnumerable<XElement> ins = response.InstanceDocuments.Element(XName.Get("InstanceDocuments")).Elements(XName.Get("InstanceDocument"));
+				foreach (XElement instanceDocument in ins)
 				{
-					string period = GetPeriod(instanceXml);
-					XPathNodeIterator ccRecordsIterator = GetCCIterator(instanceXml);
+					XDocument xbrl = new XDocument(instanceDocument.Element(XName.Get("xbrl", "http://www.xbrl.org/2003/instance")));
+					string period = GetPeriod(xbrl);
+					XPathNodeIterator ccRecordsIterator = GetCCIterator(xbrl);
 					List<WriteFormat> wf = DeserializeRecords(ccRecordsIterator);
 
 					string instanceFileName = Path.Combine(appFolder, period + "-Instance.txt");
@@ -53,6 +51,11 @@ namespace GetInstance
 					Console.WriteLine("CDR Live Update: Successful");
 					Console.WriteLine("Prior quarter history data has been downloaded successfully.");
 				}
+			}
+			if (instances == null || instances.Count() == 0)
+			{
+				string interpretedErrorMessage = PrepareMsg(responseBody.ToString());
+				AskPreviousFile("2022-Instance.txt");
 			}
 		}
 
@@ -157,7 +160,7 @@ namespace GetInstance
 						string? mtMdrm = ccElements.Current.LocalName;
 						string? mtUnitRef = ccElements.Current.GetAttribute("unitRef", string.Empty);
 						string? mtDecimals = ccElements.Current.GetAttribute("decimals", string.Empty);
-		 
+
 						wf.Add(new WriteFormat
 						{
 							MtDecimals = mtDecimals,
@@ -176,58 +179,11 @@ namespace GetInstance
 			return wf;
 		}
 
-		IEnumerable<XDocument> ExtractInstance(XDocument responseBody)
-		{
-			List<XDocument> instanceDocs = new();
-			if (responseBody?.Element(XName.Get("GetInstanceDataResponse", "http://ffiec.gov/cdr/services/"))
-				?.Element(XName.Get("GetInstanceDataResult", "http://ffiec.gov/cdr/services/")) is XElement cdr)
-			{
-				string cdrText = cdr.Value.Replace("&lt;", "<").Replace("&gt;", ">");
-				//remove the declaration for xbrl document. another option would be processing xbrl under <InstanceDocument> as string and convert it to XDocument separately
-				cdrText = cdrText.Replace(@"<?xml version=""1.0"" encoding=""utf-8""?>", string.Empty);
-				using (StringReader sr = new(cdrText))
-					cdr = XElement.Load(new StringReader(cdrText));
-				if (cdr.Name == XName.Get("CdrServiceGetInstanceData", "http://Cdr.Business.Workflow.Schemas.CdrServiceGetInstanceData") &&
-					cdr.Element(XName.Get("Outputs")) is XElement outputs)
-				{
-					XElement returnCodeElement = outputs.Element("ReturnCode");
-					XElement errorCodeElement = outputs.Element("ErrorCode");
-					string codeText = (returnCodeElement ?? errorCodeElement)?.Value;
-					bool IsSuccessfulGetInstance = int.TryParse(codeText, out int code) && code == 0;
-					try
-					{
-						if (IsSuccessfulGetInstance && outputs.Element(XName.Get("InstanceDocuments"))?.Elements("InstanceDocument") is IEnumerable<XElement> instances)
-						{
-							foreach (XElement instance in instances)
-								if (instance.Element(XName.Get("xbrl", "http://www.xbrl.org/2003/instance")) is XElement xbrl)
-									instanceDocs.Add(new XDocument(xbrl));
-						}
-						else
-						{
-							XElement returnMessageElement = outputs.Element("ReturnMessage");
-							XElement errorMessageElement = outputs.Element("ErrorMessage");
-							string message = (returnMessageElement ?? errorMessageElement)?.Value;
-							Console.WriteLine("Code: " + code);
-							Console.WriteLine("Message: " + message);
-						}
-					}
-					catch (Exception ex) when (ex is InvalidCastException || ex is FormatException)
-					{
-						Console.WriteLine("Unable to parse ErrorCode: " + code);
-					}
-					catch (Exception ex)
-					{
-						Console.WriteLine(ex.Message);
-					}
-				}
-			}
-			return instanceDocs;
-		}
 
-		private string GetPeriod(XDocument instanceXml)
+		private string GetPeriod(XDocument xbrlRoot)
 		{
 			const string defaultNamespace = "http://www.xbrl.org/2003/instance";
-			if (instanceXml.Element(XName.Get("xbrl", defaultNamespace)) is XElement xbrl)
+			if (xbrlRoot.Element(XName.Get("xbrl", defaultNamespace)) is XElement xbrl)
 				foreach (XElement context in xbrl.Elements(XName.Get("context", defaultNamespace)))
 					if (context.Element(XName.Get("period", defaultNamespace))?.Element(XName.Get("endDate", defaultNamespace))?.Value is string endDate)
 						return endDate;

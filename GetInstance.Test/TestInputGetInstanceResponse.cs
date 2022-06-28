@@ -1,4 +1,4 @@
-﻿namespace GetInstance
+﻿namespace GetInstance.Test
 {
     internal class TestInputGetInstanceResponse
     {
@@ -25,6 +25,7 @@
          
         public static string Test2 = @"<GetInstanceDataResponse><Outputs><cc:RCON1480 contextRef=""CI_1402629_2003-03-31"" unitRef=""USD"" decimals=""0"">34984000</cc:RCON1480><cc:RCON4088 contextRef=""CI_2631314_2005-03-31"">true</cc:RCON4088></Outputs></GetInstanceDataResponse>";
         public static string TestBook = @"<?xml version=""1.0"" encoding=""utf-8"" ?>   <bookstore>      <book genre=""autobiography"" publicationdate=""1981-03-22"" ISBN=""1-861003-11-0"">          <title>The Autobiography of Benjamin Franklin</title>          <author>              <first-name>Benjamin</first-name>              <last-name>Franklin</last-name>          </author>          <price>8.99</price>      </book>      <book genre=""novel"" publicationdate=""1967-11-17"" ISBN=""0-201-63361-2"">          <title>The Confidence Man</title>          <author>              <first-name>Herman</first-name>              <last-name>Melville</last-name>          </author>          <price>11.99</price>      </book>      <book genre=""philosophy"" publicationdate=""1991-02-15"" ISBN=""1-861001-57-6"">          <title>The Gorgias</title>          <author>              <name>Plato</name>          </author>          <price>9.99</price>      </book>  </bookstore>  ";
+
         public static string Test3 = @"<?xml version=""1.0"" encoding=""utf-8"" ?>
             <xbrl xmlns = ""http://www.xbrl.org/2003/instance""
             xmlns:link=""http://www.xbrl.org/2003/linkbase""
@@ -67,5 +68,30 @@
    <GetInstanceDataResult>
    </GetInstanceDataResult>
    </GetInstanceDataResponse>";
+
+  public static string SuccessfulSpecResponse =
+   @"<?xml version=""1.0""?>
+     <GetInstanceDataResponse xmlns=""http://ffiec.gov/cdr/services/"">
+            <GetInstanceDataResult>
+<CdrServiceGetInstanceData xmlns:xsd=""http://www.w3.org/2001/XMLSchema""
+  xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance""
+  xmlns=""http://Cdr.Business.Workflow.Schemas.CdrServiceGetInstanceData"">
+  <Inputs xmlns="""">
+    <ID_RSSD>968605</ID_RSSD>
+    <DataSeriesName>call</DataSeriesName>
+    <ReportingPeriodEndDate>2004-09-30T15:01:29.0000000-04:00</ReportingPeriodEndDate>
+    <NumberOfPriorPeriods>1</NumberOfPriorPeriods>
+  </Inputs>
+  <Outputs xmlns="""">
+    <ReturnCode>0</ReturnCode>
+    <ReturnMessage>Success - 2 instance documents found.</ReturnMessage>
+    <InstanceDocuments>
+      <InstanceDocument> </InstanceDocument>
+    </InstanceDocuments>
+  </Outputs>
+ </CdrServiceGetInstanceData>
+</GetInstanceDataResult>
+      </GetInstanceDataResponse>
+      ";
   }
 }

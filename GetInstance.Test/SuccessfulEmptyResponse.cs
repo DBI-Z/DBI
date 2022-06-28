@@ -25,7 +25,7 @@
       </Inputs>
       <Outputs xmlns="""">
         <ReturnCode>0</ReturnCode>
-        <ReturnMessage>Success - 2 instance documents found.</ReturnMessage>
+        <ReturnMessage>Success - 0 instance documents found.</ReturnMessage>
         <InstanceDocuments>
           <InstanceDocument>";
 

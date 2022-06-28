@@ -6,7 +6,21 @@ namespace GetInstance.Test
 {
 	public class GetterTests
 	{
-		//private readonkly Mock<IInstanceDownloader> r = 
+		[Fact]
+		public void Download_AccessDenied_NoWrite()
+		{
+			//Arrange
+			Mock<IInstanceDownloader> downloadStub = new();
+			Mock<IInstanceWriter> writeStub = new();
+			XDocument errorInstanceDownloadResult = XDocument.Load(new StringReader(ErrorResponse.SoapBody));
+			downloadStub.Setup(a => a.Download(It.IsAny<GetInstanceRequest>())).ReturnsAsync(errorInstanceDownloadResult);
+			writeStub.Setup(a => a.Write(It.IsAny<List<WriteFormat>>(), It.IsAny<string>()));
+			var getter = new InstanceGetter(downloadStub.Object, writeStub.Object);
+
+			//Act
+			var getterResult = getter.Do(TestCredentials);
+			writeStub.VerifyNoOtherCalls();
+		}
 
 		[Fact]
 		public void Download_Basic_Successful()
@@ -44,7 +58,7 @@ namespace GetInstance.Test
 			var getterResult = getter.Do(TestCredentials);
 
 			//Assert? 
-			writeStub.Verify(a => a.Write(It.Is<List<WriteFormat>>(b => b.Count == 0), It.IsAny<string>())); 
+			writeStub.Verify(a => a.Write(It.Is<List<WriteFormat>>(b => b.Count == 0), It.IsAny<string>()));
 		}
 
 		[Fact]
