@@ -2,7 +2,7 @@
 using System.Diagnostics;
 
 const string dateFormat = "yyyy-MM-dd";
-const int expectedArgCount = 4;
+const int expectedArgCount = 5;
 
 SubmitParam param;
 if (args.Length == 0)
@@ -21,7 +21,6 @@ else if (args.Length == expectedArgCount)
 	if (int.TryParse(args[2], out int periods))
 	{
 		param.NumberOfPeriods = periods;
-		PrintArgs(param);
 	}
 	else
 	{
@@ -30,16 +29,31 @@ else if (args.Length == expectedArgCount)
 		PrintArgs(TestInput.TestParam);
 		return -1;
 	}
+	switch(args[4])
+	{
+		case "live":
+			param.Prod = true;
+			break;
+		case "test":
+			param.Prod = false;
+			break;
+		default:
+			Console.WriteLine("Submission type should be specified as 'test' or 'live'. Example:");
+			PrintArgs(TestInput.TestParam); 
+			return -1;
+			break;
+	}
 }
 else
 {
-	param = null;
+	param = TestInput.TestParam;
 	Console.WriteLine("There should be exactly " + expectedArgCount + " arguments. Example:");
-	PrintArgs(TestInput.TestParam);
+	PrintArgs(param);
 	return -1;
 }
+PrintArgs(param);
 
-bool result = await new Submitter(new InstanceReader(), new InstancePoster()).DoSth(param);
+bool result = await new Submitter(new InstanceReader(), new InstancePoster()).Submit(param);
 if (result)
 {
 	Console.WriteLine("Completed");
@@ -86,7 +100,8 @@ void PrintArgs(SubmitParam args)
 	Console.Write(args.Username + " ");
 	Console.Write(args.Password + " ");
 	Console.Write(args.NumberOfPeriods + " ");
-	Console.Write(args.Filename);
+	Console.Write(args.Filename + " ");
+	Console.Write(args.Prod?"live": "test");
 	Console.WriteLine(string.Empty);
 	Console.WriteLine($"{exeName} Username Password NumberOfPeriods XmlFileName");
 }
