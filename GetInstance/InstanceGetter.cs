@@ -11,14 +11,16 @@ namespace GetInstance
 	{
 		IInstanceWriter writer;
 		IInstanceDownloader downloader;
+		IExtractor extractor;
 
-		public InstanceGetter(IInstanceDownloader downloader, IInstanceWriter writer)
+		public InstanceGetter(IInstanceDownloader downloader, IInstanceWriter writer, IExtractor extractor)
 		{
 			this.writer = writer;
 			this.downloader = downloader;
+			this.extractor = extractor;
 		}
 
-		public async Task Do(GetInstanceRequest param)
+		public async Task Get(GetInstanceRequest param)
 		{
 			string appFolder = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
 			XDocument responseBody = await downloader.Download(param);
@@ -36,9 +38,7 @@ namespace GetInstance
 				{
 					XDocument xbrl = new XDocument(instanceDocument.Element(XName.Get("xbrl", "http://www.xbrl.org/2003/instance")));
 					string period = GetPeriod(xbrl);
-					XPathNodeIterator ccRecordsIterator = GetCCIterator(xbrl);
-					List<WriteFormat> wf = DeserializeRecords(ccRecordsIterator);
-
+					List<WriteFormat > wf = extractor.Extract(xbrl);
 					string instanceFileName = Path.Combine(appFolder, period + "-Instance.txt");
 					using (FileStream instanceFile = new(instanceFileName, FileMode.Create))
 						writer.Write(records: wf, instanceFile);
@@ -59,11 +59,11 @@ namespace GetInstance
 			const int defaultErrorCode = 6;
 			(string phrase, int code)[] errorPhrases = new[]
 			{
-																("not authorized",1 ),
-																("not match",2 ),
-																("Access denied",3 ),
-																("ID_RSSD",4 )
-												};
+							("not authorized",1 ),
+							("not match",2 ),
+							("Access denied",3 ),
+							("ID_RSSD",4 )
+			};
 
 			StringBuilder sb = new();
 
@@ -87,15 +87,7 @@ namespace GetInstance
 			}
 			sb.AppendLine("Contact the FFIEC CDR Help Desk at toll-free (888)237-3111 for assistance.");
 			return sb.ToString();
-		}
-
-		XPathNodeIterator GetCCIterator(XDocument doc)
-		{
-			XPathNavigator n = doc.CreateNavigator();
-			XmlNamespaceManager m = new XmlNamespaceManager(n.NameTable);
-			m.AddNamespace("cc", "http://www.ffiec.gov/xbrl/call/concepts");
-			return n.Evaluate("//cc:*", m) as XPathNodeIterator;
-		}
+		} 
 
 		void AskPreviousFile(string instanceFileName)
 		{
@@ -124,56 +116,7 @@ namespace GetInstance
 			{
 				Console.WriteLine("Update History was not completed.");
 			}
-		}
-
-		List<WriteFormat> DeserializeRecords(XPathNodeIterator ccElements)
-		{
-			List<WriteFormat> wf = new();
-
-			while (ccElements.MoveNext())
-			{
-				var mtContextRef = ccElements.Current.GetAttribute("contextRef", string.Empty);
-
-				if (ccElements.Current.MoveToChild(XPathNodeType.Text))
-				{
-					bool isConceptDataRecord = bool.TryParse(ccElements.Current.Value, out bool mtBool);
-					if (isConceptDataRecord)
-					{
-						ccElements.Current.MoveToParent();
-						Console.WriteLine(mtContextRef + " -> " + mtBool.ToString());
-
-						wf.Add(new WriteFormat
-						{
-							MtData = mtBool.ToString(),
-							MtContextRef = mtContextRef
-						}); ;
-					}
-					else
-					{
-						ccElements.Current.MoveToParent();
-						string? mtText = ccElements.Current.Value;
-						string? mtMdrm = ccElements.Current.LocalName;
-						string? mtUnitRef = ccElements.Current.GetAttribute("unitRef", string.Empty);
-						string? mtDecimals = ccElements.Current.GetAttribute("decimals", string.Empty);
-
-						wf.Add(new WriteFormat
-						{
-							MtDecimals = mtDecimals,
-							MtData = mtText,
-							MtMdrm = mtMdrm,
-							MtUnitRef = mtUnitRef,
-							MtContextRef = mtContextRef
-						});
-					}
-				}
-				else
-				{
-					Console.WriteLine("no text child node?");
-				}
-			}
-			return wf;
-		}
-
+		} 
 
 		private string GetPeriod(XDocument xbrlRoot)
 		{
