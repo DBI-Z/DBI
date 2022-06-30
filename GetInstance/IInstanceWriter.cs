@@ -2,6 +2,6 @@
 {
     public interface IInstanceWriter
     {
-        void Write(List<WriteFormat> records, string instanceFileName);
+        void Write(IEnumerable<WriteFormat> records, Stream instanceFile);
     }
 }

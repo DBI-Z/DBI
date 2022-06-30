@@ -1,5 +1,4 @@
 using Moq;
-using System.Diagnostics;
 using System.Xml.Linq;
 
 namespace GetInstance.Test
@@ -14,7 +13,7 @@ namespace GetInstance.Test
 			Mock<IInstanceWriter> writeStub = new();
 			XDocument errorInstanceDownloadResult = XDocument.Load(new StringReader(ErrorResponse.SoapBody));
 			downloadStub.Setup(a => a.Download(It.IsAny<GetInstanceRequest>())).ReturnsAsync(errorInstanceDownloadResult);
-			writeStub.Setup(a => a.Write(It.IsAny<List<WriteFormat>>(), It.IsAny<string>()));
+			writeStub.Setup(a => a.Write(It.IsAny<List<WriteFormat>>(), It.IsAny<Stream>()));
 			var getter = new InstanceGetter(downloadStub.Object, writeStub.Object);
 
 			//Act
@@ -33,7 +32,7 @@ namespace GetInstance.Test
 
 			downloadStub.Setup(a => a.Download(It.IsAny<GetInstanceRequest>())).ReturnsAsync(successfulInstanceDownloadResult);
 
-			writeStub.Setup(a => a.Write(It.IsAny<List<WriteFormat>>(), It.IsAny<string>()));
+			writeStub.Setup(a => a.Write(It.IsAny<List<WriteFormat>>(), It.IsAny<Stream>()));
 
 			var getter = new InstanceGetter(downloadStub.Object, writeStub.Object);
 			//Act
@@ -51,14 +50,14 @@ namespace GetInstance.Test
 			Mock<IInstanceWriter> writeStub = new Mock<IInstanceWriter>();
 			XDocument successfulInstanceDownloadResult = XDocument.Load(new StringReader(SuccessfulEmptyResponse.SoapBody));
 			downloadStub.Setup(a => a.Download(It.IsAny<GetInstanceRequest>())).ReturnsAsync(successfulInstanceDownloadResult);
-			writeStub.Setup(a => a.Write(It.IsAny<List<WriteFormat>>(), It.IsAny<string>()));
+			writeStub.Setup(a => a.Write(It.IsAny<List<WriteFormat>>(), It.IsAny<Stream>()));
 			var getter = new InstanceGetter(downloadStub.Object, writeStub.Object);
 
 			//Act
 			var getterResult = getter.Do(TestCredentials);
 
 			//Assert? 
-			writeStub.Verify(a => a.Write(It.Is<List<WriteFormat>>(b => b.Count == 0), It.IsAny<string>()));
+			writeStub.Verify(a => a.Write(It.Is<List<WriteFormat>>(b => b.Count == 0), It.IsAny<Stream>()));
 		}
 
 		[Fact]
@@ -69,19 +68,19 @@ namespace GetInstance.Test
 			Mock<IInstanceWriter> writeStub = new();
 			XDocument soapBody = XDocument.Load(new StringReader(SuccessfulResponse1.SoapBody));
 			downloadStub.Setup(a => a.Download(It.IsAny<GetInstanceRequest>())).ReturnsAsync(soapBody);
-			writeStub.Setup(a => a.Write(It.IsAny<List<WriteFormat>>(), It.IsAny<string>()));
+			writeStub.Setup(a => a.Write(It.IsAny<List<WriteFormat>>(), It.IsAny<Stream>()));
 			var getter = new InstanceGetter(downloadStub.Object, writeStub.Object);
 
 			//Act
 			_ = getter.Do(TestCredentials);
 
 			//Assert
-			writeStub.Verify(a => a.Write(It.Is<List<WriteFormat>>(b => b.Count == 1259), It.IsAny<string>()));
-			writeStub.Verify(a => a.Write(It.Is<List<WriteFormat>>(b => b.Count == 609), It.IsAny<string>()));
-			writeStub.Verify(a => a.Write(It.Is<List<WriteFormat>>(b => b.Count == 1090), It.IsAny<string>()));
-			writeStub.Verify(a => a.Write(It.Is<List<WriteFormat>>(b => b.Count == 611), It.IsAny<string>()));
-			writeStub.Verify(a => a.Write(It.Is<List<WriteFormat>>(b => b.Count == 1237), It.IsAny<string>()));
-			writeStub.Verify(a => a.Write(It.Is<List<WriteFormat>>(b => b.Count == 611), It.IsAny<string>())); 
+			writeStub.Verify(a => a.Write(It.Is<List<WriteFormat>>(b => b.Count == 1259), It.IsAny<Stream>()));
+			writeStub.Verify(a => a.Write(It.Is<List<WriteFormat>>(b => b.Count == 609), It.IsAny<Stream>()));
+			writeStub.Verify(a => a.Write(It.Is<List<WriteFormat>>(b => b.Count == 1090), It.IsAny<Stream>()));
+			writeStub.Verify(a => a.Write(It.Is<List<WriteFormat>>(b => b.Count == 611), It.IsAny<Stream>()));
+			writeStub.Verify(a => a.Write(It.Is<List<WriteFormat>>(b => b.Count == 1237), It.IsAny<Stream>()));
+			writeStub.Verify(a => a.Write(It.Is<List<WriteFormat>>(b => b.Count == 611), It.IsAny<Stream>())); 
 		}
 
 		GetInstanceRequest TestCredentials => new GetInstanceRequest

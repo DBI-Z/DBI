@@ -40,13 +40,8 @@ namespace GetInstance
 					List<WriteFormat> wf = DeserializeRecords(ccRecordsIterator);
 
 					string instanceFileName = Path.Combine(appFolder, period + "-Instance.txt");
-
-					foreach (WriteFormat a in wf)
-					{
-						string csv = string.Join(',', a.MtMdrm, a.MtContextRef, a.MtUnitRef, a.MtDecimals, a.MtData);
-						Debug.WriteLine(csv);
-					}
-					writer.Write(records: wf, instanceFileName);
+					using (FileStream instanceFile = new(instanceFileName, FileMode.Create))
+						writer.Write(records: wf, instanceFile);
 					Console.WriteLine("Completed");
 					Console.WriteLine("CDR Live Update: Successful");
 					Console.WriteLine("Prior quarter history data has been downloaded successfully.");
