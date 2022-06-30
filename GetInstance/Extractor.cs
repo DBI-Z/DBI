@@ -30,7 +30,6 @@ namespace GetInstance
 				if (ccElements.Current.MoveToChild(XPathNodeType.Text))
 				{
 					bool isConceptDataRecord = bool.TryParse(ccElements.Current.Value, out bool mtBool);
-					string? mtDecimals = ccElements.Current.GetAttribute("decimals", string.Empty);
 					if (isConceptDataRecord)
 					{
 						ccElements.Current.MoveToParent();
@@ -50,6 +49,8 @@ namespace GetInstance
 						string? mtText = ccElements.Current.Value;
 						string? mtMdrm = ccElements.Current.LocalName;
 						string? mtUnitRef = ccElements.Current.GetAttribute("unitRef", string.Empty);
+						string? mtDecimals = ccElements.Current.GetAttribute("decimals", string.Empty);
+
 
 						wf.Add(new WriteFormat
 						{

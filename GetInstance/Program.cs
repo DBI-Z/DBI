@@ -69,7 +69,7 @@ void PrintArgs(GetInstanceRequest args)
 Console.WriteLine(string.Empty);
 Console.WriteLine("Updating history with prior quarter data from the CDR...");
 Console.WriteLine("1. Logging on to CDR: ");
-await new InstanceGetter(new InstanceDownloader(), new CsvWriter(), new Extractor()).Get(param);
+await new InstanceGetter(new Prior2Downloader(), new CsvWriter(), new Extractor()).Get(param);
 
 return 0;
 

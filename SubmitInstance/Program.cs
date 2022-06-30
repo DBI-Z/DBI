@@ -2,7 +2,7 @@
 using System.Diagnostics;
 
 const string dateFormat = "yyyy-MM-dd";
-const int expectedArgCount = 5;
+const int expectedArgCount = 4;
 
 SubmitParam param;
 if (args.Length == 0)
@@ -15,21 +15,10 @@ else if (args.Length == expectedArgCount)
 	{
 		Username = args[0],
 		Password = args[1],
-		Filename = args[3],
+		Filename = args[2],
 	};
-
-	if (int.TryParse(args[2], out int periods))
-	{
-		param.NumberOfPeriods = periods;
-	}
-	else
-	{
-		param = TestInput.TestParam;
-		Console.WriteLine("NumberOfPriorPeriods should be a number. Example:");
-		PrintArgs(TestInput.TestParam);
-		return -1;
-	}
-	switch(args[4])
+	 
+	switch(args[3])
 	{
 		case "live":
 			param.Prod = true;
@@ -98,8 +87,7 @@ void PrintArgs(SubmitParam args)
 	string exeName = Process.GetCurrentProcess().MainModule.ModuleName;
 	Console.Write(exeName + " ");
 	Console.Write(args.Username + " ");
-	Console.Write(args.Password + " ");
-	Console.Write(args.NumberOfPeriods + " ");
+	Console.Write(args.Password + " "); 
 	Console.Write(args.Filename + " ");
 	Console.Write(args.Prod?"live": "test");
 	Console.WriteLine(string.Empty);

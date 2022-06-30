@@ -40,7 +40,6 @@ namespace GetInstance
 					XDocument xbrl = new XDocument(instanceDocument.Element(XName.Get("xbrl", "http://www.xbrl.org/2003/instance")));
 					string period = GetPeriod(xbrl);
 
-
 					if (DateTime.TryParseExact(period, GetInstanceRequest.DateFormat, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out DateTime xbrlEndTime))
 					{
 						if (xbrlEndTime.Date == param.ReportingPeriodEndDate.Date)
