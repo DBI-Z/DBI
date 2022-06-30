@@ -81,13 +81,31 @@ namespace GetInstance.Test
 			_ = getter.Get(TestCredentials);
 
 			//Assert
-			writeStub.Verify(a => a.Write(It.Is<List<WriteFormat>>(b => b.Count == 1259), It.IsAny<Stream>()));
-			writeStub.Verify(a => a.Write(It.Is<List<WriteFormat>>(b => b.Count == 609), It.IsAny<Stream>()));
-			writeStub.Verify(a => a.Write(It.Is<List<WriteFormat>>(b => b.Count == 1090), It.IsAny<Stream>()));
-			writeStub.Verify(a => a.Write(It.Is<List<WriteFormat>>(b => b.Count == 611), It.IsAny<Stream>()));
-			writeStub.Verify(a => a.Write(It.Is<List<WriteFormat>>(b => b.Count == 1237), It.IsAny<Stream>()));
-			writeStub.Verify(a => a.Write(It.Is<List<WriteFormat>>(b => b.Count == 611), It.IsAny<Stream>())); 
+			writeStub.Verify(a => a.Write(It.Is<List<WriteFormat>>(b => b.Count == 5417), It.IsAny<Stream>()));
+			writeStub.VerifyNoOtherCalls();
 		}
+
+		[Fact]
+		public void Download_Write_SkipCurrentPeriod()
+		{
+			//Arrange
+			Mock<IInstanceDownloader> downloadStub = new();
+			Mock<IInstanceWriter> writeStub = new();
+			int priorPeriodsRecordCount = SuccessfulResponse2.RecordCount - SuccessfulResponse2.RecordCountPeriod20220331;
+
+			XDocument soapBody = XDocument.Load(new StringReader(SuccessfulResponse2.SoapBody));
+			downloadStub.Setup(a => a.Download(It.IsAny<GetInstanceRequest>())).ReturnsAsync(soapBody);
+			writeStub.Setup(a => a.Write(It.IsAny<List<WriteFormat>>(), It.IsAny<Stream>()));
+			var getter = new InstanceGetter(downloadStub.Object, writeStub.Object, new Extractor());
+
+			//Act
+			_ = getter.Get(TestCredentials);
+
+			//Assert
+			writeStub.Verify(a => a.Write(It.Is<List<WriteFormat>>(b => b.Count == priorPeriodsRecordCount), It.IsAny<Stream>()));
+			writeStub.VerifyNoOtherCalls();
+		}
+
 
 		GetInstanceRequest TestCredentials => new GetInstanceRequest
 		{

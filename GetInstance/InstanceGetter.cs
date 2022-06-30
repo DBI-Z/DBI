@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
@@ -27,27 +28,43 @@ namespace GetInstance
 
 			Console.WriteLine(responseBody.ToString());
 			GetInstanceResponse response = new Cdr().ExtractResponse(responseBody);
-			bool IsSuccessfulGetInstance = response.Code == 0;
-			IEnumerable<XDocument> instances = null;
+			bool IsSuccessfulGetInstance = response.Code == 0; 
 			if (IsSuccessfulGetInstance)
 			{
 				Console.WriteLine("3. Processing CDR Data: ");
 
 				IEnumerable<XElement> ins = response.InstanceDocuments.Element(XName.Get("InstanceDocuments")).Elements(XName.Get("InstanceDocument"));
+					List<WriteFormat> wf = new();
 				foreach (XElement instanceDocument in ins)
 				{
 					XDocument xbrl = new XDocument(instanceDocument.Element(XName.Get("xbrl", "http://www.xbrl.org/2003/instance")));
 					string period = GetPeriod(xbrl);
-					List<WriteFormat > wf = extractor.Extract(xbrl);
-					string instanceFileName = Path.Combine(appFolder, period + "-Instance.txt");
-					using (FileStream instanceFile = new(instanceFileName, FileMode.Create))
-						writer.Write(records: wf, instanceFile);
-					Console.WriteLine("Completed");
-					Console.WriteLine("CDR Live Update: Successful");
-					Console.WriteLine("Prior quarter history data has been downloaded successfully.");
+
+
+					if (DateTime.TryParseExact(period, GetInstanceRequest.DateFormat, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out DateTime xbrlEndTime))
+					{
+						if (xbrlEndTime.Date == param.ReportingPeriodEndDate.Date)
+						{
+							Console.WriteLine($"Skipping processing of current period: {period}");
+							continue;
+						}
+					}
+					else
+					{
+						Console.WriteLine($"Cannot read period as date: {period}");
+					}
+					var thisWf = extractor.Extract(xbrl);
+					wf.AddRange(thisWf);
 				}
+				string currentPeriod = param.ReportingPeriodEndDate.ToString(GetInstanceRequest.DateFormat);
+				string instanceFileName = Path.Combine(appFolder, currentPeriod + "-Instance.txt");
+				using (FileStream instanceFile = new(instanceFileName, FileMode.Create))
+					writer.Write(records: wf, instanceFile);
+				Console.WriteLine("Completed");
+				Console.WriteLine("CDR Live Update: Successful");
+				Console.WriteLine("Prior quarter history data has been downloaded successfully.");
 			}
-			if (instances == null || instances.Count() == 0)
+			else
 			{
 				string interpretedErrorMessage = PrepareMsg(responseBody.ToString());
 				AskPreviousFile("2022-Instance.txt");
@@ -87,7 +104,7 @@ namespace GetInstance
 			}
 			sb.AppendLine("Contact the FFIEC CDR Help Desk at toll-free (888)237-3111 for assistance.");
 			return sb.ToString();
-		} 
+		}
 
 		void AskPreviousFile(string instanceFileName)
 		{
@@ -116,7 +133,7 @@ namespace GetInstance
 			{
 				Console.WriteLine("Update History was not completed.");
 			}
-		} 
+		}
 
 		private string GetPeriod(XDocument xbrlRoot)
 		{
@@ -132,6 +149,7 @@ namespace GetInstance
 	[XmlRoot("GetInstanceData", Namespace = "http://ffiec.gov/cdr/services/")]
 	public class GetInstanceRequest
 	{
+		public const string DateFormat = "yyyy-MM-dd";
 		[XmlElement("userName")]
 		public string Username { get; set; }
 		[XmlElement("password")]

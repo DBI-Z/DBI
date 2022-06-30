@@ -2,8 +2,6 @@
 using GetInstance;
 using System.Globalization;
 
-const string dateFormat = "yyyy-MM-dd";
-
 GetInstanceRequest param;
 if (args.Length == 0)
 {
@@ -29,7 +27,10 @@ else
 			DataSeriesName = args[2],
 			IdRssd = args[3]
 		};
-		if (int.TryParse(args[4], out int periods)) cmdLineInput.NumberOfPriorPeriods = periods;
+		if (int.TryParse(args[4], out int periods))
+		{
+			cmdLineInput.NumberOfPriorPeriods = periods;
+		}
 		else
 		{
 			Console.WriteLine("NumberOfPriorPeriods should be a number. Example:");
@@ -37,10 +38,13 @@ else
 			return -1;
 
 		}
-		if (DateTime.TryParseExact(args[5], dateFormat, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out DateTime endDate)) cmdLineInput.ReportingPeriodEndDate = endDate;
+		if (DateTime.TryParseExact(args[5], GetInstanceRequest.DateFormat, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out DateTime endDate))
+		{
+			cmdLineInput.ReportingPeriodEndDate = endDate;
+		}
 		else
 		{
-			Console.WriteLine($"ReportingPeriodEndDate should have date format {dateFormat}. Example:");
+			Console.WriteLine($"ReportingPeriodEndDate should have date format {GetInstanceRequest.DateFormat}. Example:");
 			PrintArgs(TestInput.TestRequest);
 			return -1;
 		}
@@ -57,7 +61,7 @@ void PrintArgs(GetInstanceRequest args)
 	Console.Write(args.DataSeriesName + " ");
 	Console.Write(args.IdRssd + " ");
 	Console.Write(args.NumberOfPriorPeriods + " ");
-	Console.Write(args.ReportingPeriodEndDate.ToString(dateFormat) + " ");
+	Console.Write(args.ReportingPeriodEndDate.ToString(GetInstanceRequest.DateFormat) + " ");
 	Console.WriteLine(string.Empty);
 	Console.WriteLine($"{exeName} Username Password DataSeriesName IdRSSD NumberOfPriorPeriods ReportingPeriodEndDate");
 }
