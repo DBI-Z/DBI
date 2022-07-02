@@ -8,7 +8,24 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="CDR.ini" />
+    <None Remove="Properties\CDR.ini" />
+    <None Remove="Properties\launchSettings.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="CDR.ini">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Properties\launchSettings.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="SimpleSOAPClient" Version="2.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Include="Properties\CDR.ini" />
   </ItemGroup>
 
 </Project>

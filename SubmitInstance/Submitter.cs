@@ -10,11 +10,13 @@ namespace SubmitInstance
 	{
 		IInstanceReader reader;
 		IInstancePoster poster;
+		ISettings settings;
 
-		public Submitter(IInstanceReader reader, IInstancePoster poster)
+		public Submitter(IInstanceReader reader, IInstancePoster poster, ISettings settings)
 		{
 			this.reader = reader;
 			this.poster = poster;
+			this.settings = settings;
 		}
 
 		//using a login info, submit the contents of filename denoted at InstanceDataFileText.Text
