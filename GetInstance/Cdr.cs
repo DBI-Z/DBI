@@ -12,7 +12,7 @@ namespace GetInstance
 				//string cdrText= String.Empty;
 				//if (getInstanceDataResult.Value.Contains("&lt;"))
 				{
-					XElement cdr = getInstanceDataResult.Element(XName.Get("CdrServiceGetInstanceData", "http://Cdr.Business.Workflow.Schemas.CdrServiceGetInstanceData")) as XElement;
+					XElement cdr = getInstanceDataResult.Element(XName.Get("CdrServiceGetInstanceData", "http://Cdr.Business.Workflow.Schemas.CdrServiceGetInstanceData"));
 
 					if (cdr == null)
 					{

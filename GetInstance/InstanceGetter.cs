@@ -33,7 +33,7 @@ namespace GetInstance
 			{
 				Console.WriteLine("3. Processing CDR Data: ");
 
-				IEnumerable<XElement> ins = response.InstanceDocuments.Element(XName.Get("InstanceDocuments")).Elements(XName.Get("InstanceDocument"));
+				IEnumerable<XElement> ins = response.InstanceDocuments.Element("InstanceDocuments").Elements("InstanceDocument");
 					List<WriteFormat> wf = new();
 				foreach (XElement instanceDocument in ins)
 				{
