@@ -1,6 +1,6 @@
 ﻿namespace SubmitInstance
 {
-	internal class SubmitParam
+	public class SubmitParam
 	{
 		public bool Prod { get; set; }
 		public string Username { get; set; }

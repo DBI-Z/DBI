@@ -6,39 +6,25 @@ using System.Xml.XPath;
 
 namespace SubmitInstance
 {
-	internal class Submitter
+	public class Submitter
 	{
 		IInstanceReader reader;
 		IInstancePoster poster;
 		ISettings settings;
+		ISubmitRequestBuilder builder;
 
-		public Submitter(IInstanceReader reader, IInstancePoster poster, ISettings settings)
+		public Submitter(IInstanceReader reader, IInstancePoster poster, ISettings settings, ISubmitRequestBuilder builder)
 		{
 			this.reader = reader;
 			this.poster = poster;
 			this.settings = settings;
-		}
-
-		XDocument DoSth(SubmitParam param, IInstanceReader reader)
-		{
-			string submitElement = param.Prod ? "SubmitInstanceData" : "SubmitTestInstanceData";
-			string fileContents = reader.Read(param.Filename);
-			string instance = fileContents.Replace("<", "&lt;").Replace(">", "&gt;");
-
-			XDocument envelopeBody = new XDocument(submitElement,
-				new XElement("Username", param.Username),
-				new XElement("Password", param.Password),
-				new XElement("InstanceData", instance));
-
-			return envelopeBody;
+			this.builder = builder;
 		}
 
 		public async Task<bool> Submit(SubmitParam param)
 		{
 			Console.WriteLine("Submitting Call Report to the CDR");
 			Console.WriteLine("1. Logging on to CDR");
-			XPathNavigator cdrOutputs = null;
-			XmlNamespaceManager m = null;
 			XDocument responseBody = null;
 			try
 			{
@@ -49,44 +35,28 @@ namespace SubmitInstance
 				Console.WriteLine(url);
 				Console.WriteLine(action);
 
-				DoSth(param);
+				string fileContents = reader.Read(param.Filename);
+				if(string.IsNullOrWhiteSpace(fileContents))
+				{
+					return false;
+				}
+				XDocument submitBody = builder.Build(param, settings.NS, fileContents);
 
-				responseBody = await poster.Post(url, action, envlopeBody);
+				responseBody = await poster.Post(url, action, submitBody);
 
 				Console.WriteLine(responseBody.ToString());
 
-				XPathNavigator responseBodyNav = responseBody.CreateNavigator();
-				m = new(responseBodyNav.NameTable);
-				m.AddNamespace("def", settings.NS);
-
-				string submitInstanceDataResponse = param.Prod ? "SubmitInstanceDataResponse" : "SubmitTestInstanceDataResponse";
-				string submitInstanceDataResult = param.Prod ? "SubmitInstanceDataResult" : "SubmitTestInstanceDataResult";
-
-				XPathNavigator responseNavigator = responseBodyNav.SelectSingleNode($"/def:{submitInstanceDataResponse}/def:{submitInstanceDataResult}", m);
-
-				if (responseNavigator == null)
-					return false;
-
-				XDocument cdrResult = XDocument.Load(new StringReader(responseNavigator.Value));
-				XPathNavigator cdrNav = cdrResult.CreateNavigator();
-				m = new(cdrNav.NameTable);
-				m.AddNamespace("def", "http://Cdr.Business.Workflow.Schemas.CdrServiceSubmitInstanceData");
-				cdrOutputs = cdrNav.SelectSingleNode("/def:CdrServiceSubmitInstanceData/Outputs", m);
-				if (cdrOutputs == null)
-					return false;
-
-				int? success = 0;
-				int? errorCode = cdrOutputs.SelectSingleNode("ErrorCode", m)?.ValueAsInt;
-				if (errorCode != success)
+				var response = new Cdr().ExtractSubmitResponse(responseBody, param.Prod);
+				bool IsSuccessfulGetInstance = response.ReturnCode == 0;
+				if (IsSuccessfulGetInstance)
 				{
-					string errorMessage = cdrOutputs.SelectSingleNode("ErrorMessage", m)?.Value;
-					Console.WriteLine("ErrorCode: " + errorCode);
-					Console.WriteLine("ErrorMessage: " + errorMessage);
-					return false;
+					return true;
 				}
 				else
 				{
-					return true;
+					Console.WriteLine("Code: " + response.ReturnCode);
+					Console.WriteLine("Message: " + response.ReturnMessage);
+					return false;
 				}
 			}
 			catch (IOException ex)
@@ -99,15 +69,9 @@ namespace SubmitInstance
 			{
 				Console.WriteLine(ex.Message);
 				string errmsg =
-						"Unable to connect.  Some firewalls require altering permissions to allow EasyCall Report to communicate with the Central Data Repository.  Your information technology department should be made aware that this communication uses HTTPS via port 443." +
+						"Unable to connect. Some firewalls require altering permissions to allow EasyCall Report to communicate with the Central Data Repository.  Your information technology department should be made aware that this communication uses HTTPS via port 443." +
 						"Also, the FFIEC CDR system now only supports TLS 1.2;  please insure your operating system supports said.";
 				Console.WriteLine(PrepareMsg(errmsg));
-				return false;
-			}
-			catch (Exception ex) when (ex is InvalidCastException || ex is FormatException)
-			{
-				Console.WriteLine(ex.Message);
-				Console.WriteLine("Unable to parse ErrorCode: " + cdrOutputs?.SelectSingleNode("ErrorCode", m)?.Value);
 				return false;
 			}
 			catch (Exception ex)

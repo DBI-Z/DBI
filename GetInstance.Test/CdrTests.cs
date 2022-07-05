@@ -12,7 +12,7 @@ namespace GetInstance.Test
 			XDocument errorResponse = XDocument.Load(new StringReader(ErrorResponse.SoapBody));
 
 			//Act
-			var extracted = cdr.ExtractResponse(errorResponse);
+			var extracted = cdr.ExtractGetResponse(errorResponse);
 
 			//Assert
 			Assert.True(extracted.Code == -1);
@@ -28,7 +28,7 @@ namespace GetInstance.Test
 			XDocument specResponse = XDocument.Load(new StringReader(TestInputGetInstanceResponse.SuccessfulSpecResponse));
 
 			//Act
-			GetInstanceResponse extracted = cdr.ExtractResponse(specResponse);
+			GetInstanceResponse extracted = cdr.ExtractGetResponse(specResponse);
 
 			//Assert
 			Assert.Equal(0, extracted.Code);
@@ -45,7 +45,7 @@ namespace GetInstance.Test
 			XDocument errorResponse = XDocument.Load(new StringReader(SuccessfulResponse1.SoapBody));
 
 			//Act
-			GetInstanceResponse extracted = cdr.ExtractResponse(errorResponse);
+			GetInstanceResponse extracted = cdr.ExtractGetResponse(errorResponse);
 			IEnumerable<XElement> ins = extracted?.InstanceDocuments?.Element("InstanceDocuments")?.Elements();
 
 			//Assert

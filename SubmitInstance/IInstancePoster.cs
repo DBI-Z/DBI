@@ -2,7 +2,7 @@
 
 namespace SubmitInstance
 {
-	internal interface IInstancePoster
+	public interface IInstancePoster
 	{
 		Task<XDocument> Post(string server, string action, XDocument param);
 	}

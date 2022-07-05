@@ -1,6 +1,6 @@
 ﻿namespace SubmitInstance
 {
-	internal interface ISettings
+	public interface ISettings
 	{
 		void Load(Stream stream);
 		string GetAction { get; }

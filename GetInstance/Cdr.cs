@@ -4,7 +4,7 @@ namespace GetInstance
 {
 	public class Cdr
 	{
-		public GetInstanceResponse ExtractResponse(XDocument responseBody)
+		public GetInstanceResponse ExtractGetResponse(XDocument responseBody)
 		{
 			if (responseBody?.Element(XName.Get("GetInstanceDataResponse", "http://ffiec.gov/cdr/services/"))
 				?.Element(XName.Get("GetInstanceDataResult", "http://ffiec.gov/cdr/services/")) is XElement getInstanceDataResult)
@@ -22,7 +22,7 @@ namespace GetInstance
 							cdr = XElement.Load(new StringReader(cdrText));
 					}
 
-					if (cdr.Name == XName.Get("CdrServiceGetInstanceData", "http://Cdr.Business.Workflow.Schemas.CdrServiceGetInstanceData") &&
+					if (cdr?.Name == XName.Get("CdrServiceGetInstanceData", "http://Cdr.Business.Workflow.Schemas.CdrServiceGetInstanceData") &&
 						cdr.Element(XName.Get("Outputs")) is XElement outputs)
 					{
 						XElement returnCodeElement = outputs.Element("ReturnCode");

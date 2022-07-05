@@ -3,8 +3,7 @@ using System.Globalization;
 using System.Text;
 using System.Xml;
 using System.Xml.Linq;
-using System.Xml.Serialization;
-using System.Xml.XPath;
+using System.Xml.Serialization; 
 
 namespace GetInstance
 {
@@ -27,7 +26,7 @@ namespace GetInstance
 			XDocument responseBody = await downloader.Download(param);
 
 			Console.WriteLine(responseBody.ToString());
-			GetInstanceResponse response = new Cdr().ExtractResponse(responseBody);
+			GetInstanceResponse response = new Cdr().ExtractGetResponse(responseBody);
 			bool IsSuccessfulGetInstance = response.Code == 0; 
 			if (IsSuccessfulGetInstance)
 			{
@@ -52,7 +51,7 @@ namespace GetInstance
 					{
 						Console.WriteLine($"Cannot read period as date: {period}");
 					}
-					var thisWf = extractor.Extract(xbrl);
+					List<WriteFormat> thisWf = extractor.Extract(xbrl);
 					wf.AddRange(thisWf);
 				}
 				string currentPeriod = param.ReportingPeriodEndDate.ToString(GetInstanceRequest.DateFormat);

@@ -4,8 +4,14 @@
 	{
 		public string Read(string xmlFileName)
 		{
-			using (StreamReader r = new(xmlFileName))
-				return r.ReadToEnd();
+			if (File.Exists(xmlFileName))
+				using (StreamReader r = new(xmlFileName))
+					return r.ReadToEnd();
+			else
+			{
+				Console.WriteLine($"File {xmlFileName} cannot be found.");
+				return string.Empty;
+			}
 		}
 	}
 }

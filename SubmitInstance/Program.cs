@@ -17,8 +17,8 @@ else if (args.Length == expectedArgCount)
 		Password = args[1],
 		Filename = args[2],
 	};
-	 
-	switch(args[3])
+
+	switch (args[3])
 	{
 		case "live":
 			param.Prod = true;
@@ -28,7 +28,7 @@ else if (args.Length == expectedArgCount)
 			break;
 		default:
 			Console.WriteLine("Submission type should be specified as 'test' or 'live'. Example:");
-			PrintArgs(TestInput.TestParam); 
+			PrintArgs(TestInput.TestParam);
 			return -1;
 			break;
 	}
@@ -42,7 +42,17 @@ else
 }
 PrintArgs(param);
 
-bool result = await new Submitter(new InstanceReader(), new InstancePoster(), new Settings()).Submit(param);
+var cdrSettings = new Settings();
+Console.WriteLine("Reading settings from CDR.ini");
+if (!File.Exists("CDR.ini"))
+{
+	Console.WriteLine("CDR.ini cannot be found");
+	return -1;
+}
+using (var file = new FileStream("CDR.ini", FileMode.Open))
+	cdrSettings.Load(file);
+
+bool result = await new Submitter(new InstanceReader(), new InstancePoster(), cdrSettings, new RequestBuilder()).Submit(param);
 if (result)
 {
 	Console.WriteLine("Completed");
@@ -87,9 +97,9 @@ void PrintArgs(SubmitParam args)
 	string exeName = Process.GetCurrentProcess().MainModule.ModuleName;
 	Console.Write(exeName + " ");
 	Console.Write(args.Username + " ");
-	Console.Write(args.Password + " "); 
+	Console.Write(args.Password + " ");
 	Console.Write(args.Filename + " ");
-	Console.Write(args.Prod?"live": "test");
+	Console.Write(args.Prod ? "live" : "test");
 	Console.WriteLine(string.Empty);
 	Console.WriteLine($"{exeName} Username Password NumberOfPeriods XmlFileName");
 }

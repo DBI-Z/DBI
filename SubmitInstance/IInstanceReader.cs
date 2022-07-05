@@ -1,6 +1,6 @@
 ﻿namespace SubmitInstance
 {
-	internal interface IInstanceReader
+	public interface IInstanceReader
 	{
 		string Read(string xmlFileName);
 	}
