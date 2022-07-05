@@ -4,4 +4,4 @@
 	{
 		string Read(string xmlFileName);
 	}
-}
+} 

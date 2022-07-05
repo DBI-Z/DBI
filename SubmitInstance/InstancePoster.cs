@@ -7,11 +7,11 @@ namespace SubmitInstance
 {
 	internal class InstancePoster : IInstancePoster
 	{
-		public async Task<XDocument> Post(string server, string action, SubmitInstanceDataRequest param)
+		public async Task<XDocument> Post(string server, string action, XDocument body)
 		{
-			var client = SoapClient.Prepare();
-			var requestEnvelope = SoapEnvelope.Prepare().Body(param);
-			var responseEnvelope = await client.SendAsync(server, action, requestEnvelope);
+			SoapClient client = SoapClient.Prepare();
+			SoapEnvelope requestEnvelope = SoapEnvelope.Prepare().Body(body);
+			SoapEnvelope responseEnvelope = await client.SendAsync(server, action, requestEnvelope);
 			return new XDocument(responseEnvelope.Body.Value);
 		}
 	}

@@ -7,7 +7,6 @@
 		public string UrlT => GetValue("URLT");
 		public string NS => GetValue("NS");
 		public string SubmitAction => GetValue("SubmitAction");
-		public string TestSubmitAction => GetValue("TestSubmitAction");
 
 		string GetValue(string key)
 		{

@@ -19,13 +19,20 @@ namespace SubmitInstance
 			this.settings = settings;
 		}
 
-		//using a login info, submit the contents of filename denoted at InstanceDataFileText.Text
-		//either test or production server can be targeted
-		const string serviceUrlLive = "https://cdr.ffiec.gov/cdr/Services/CdrService.asmx?WSDL";
-		const string serviceUrlTest = "https://c1-test-cdr-ffiec.com/FFIEC/services/CdrService.asmx?WSDL";
-		const string submitActionLive = "http://ffiec.gov/cdr/services/SubmitInstanceData";
-		const string submitActionTest = "http://ffiec.gov/cdr/services/SubmitTestInstanceData";
- 
+		XDocument DoSth(SubmitParam param, IInstanceReader reader)
+		{
+			string submitElement = param.Prod ? "SubmitInstanceData" : "SubmitTestInstanceData";
+			string fileContents = reader.Read(param.Filename);
+			string instance = fileContents.Replace("<", "&lt;").Replace(">", "&gt;");
+
+			XDocument envelopeBody = new XDocument(submitElement,
+				new XElement("Username", param.Username),
+				new XElement("Password", param.Password),
+				new XElement("InstanceData", instance));
+
+			return envelopeBody;
+		}
+
 		public async Task<bool> Submit(SubmitParam param)
 		{
 			Console.WriteLine("Submitting Call Report to the CDR");
@@ -35,39 +42,32 @@ namespace SubmitInstance
 			XDocument responseBody = null;
 			try
 			{
-				string fileContents = reader.Read(param.Filename);
-				string instance = fileContents.Replace("<", "&lt;").Replace(">", "&gt;");
-				SubmitInstanceDataRequest request = new()
-				{
-					InstanceData = instance,
-					Password = param.Password,
-					UserName = param.Username
-				};
-				if(!param.Prod)
-				{
-					Console.WriteLine("test is not yet supported. please use prod");
-					return false;
-				}
+				string url = param.Prod ? settings.Url : settings.UrlT;
+				string action = param.Prod ? settings.SubmitAction : settings.TestSubmitAction;
 
-				string url = param.Prod ? serviceUrlLive : serviceUrlTest;
-				string action = param.Prod ? submitActionLive : submitActionTest;
 				Console.WriteLine("2. Submitting Call Report: ");
 				Console.WriteLine(url);
 				Console.WriteLine(action);
 
-				responseBody = await poster.Post(url, action, request);
+				DoSth(param);
+
+				responseBody = await poster.Post(url, action, envlopeBody);
 
 				Console.WriteLine(responseBody.ToString());
 
 				XPathNavigator responseBodyNav = responseBody.CreateNavigator();
 				m = new(responseBodyNav.NameTable);
-				m.AddNamespace("def", "http://ffiec.gov/cdr/services/");
-				XPathNavigator submitInstanceDataResult = responseBodyNav.SelectSingleNode("/def:SubmitInstanceDataResponse/def:SubmitInstanceDataResult", m);
+				m.AddNamespace("def", settings.NS);
 
-				if (submitInstanceDataResult == null)
+				string submitInstanceDataResponse = param.Prod ? "SubmitInstanceDataResponse" : "SubmitTestInstanceDataResponse";
+				string submitInstanceDataResult = param.Prod ? "SubmitInstanceDataResult" : "SubmitTestInstanceDataResult";
+
+				XPathNavigator responseNavigator = responseBodyNav.SelectSingleNode($"/def:{submitInstanceDataResponse}/def:{submitInstanceDataResult}", m);
+
+				if (responseNavigator == null)
 					return false;
 
-				XDocument cdrResult = XDocument.Load(new StringReader(submitInstanceDataResult.Value));
+				XDocument cdrResult = XDocument.Load(new StringReader(responseNavigator.Value));
 				XPathNavigator cdrNav = cdrResult.CreateNavigator();
 				m = new(cdrNav.NameTable);
 				m.AddNamespace("def", "http://Cdr.Business.Workflow.Schemas.CdrServiceSubmitInstanceData");
@@ -116,13 +116,13 @@ namespace SubmitInstance
 				string interpretedErrorMessage = PrepareMsg(responseBody?.ToString() ?? string.Empty);
 				Console.WriteLine(interpretedErrorMessage);
 				return false;
-			} 
+			}
 		}
-			string PrepareMsg(string subText)
+		string PrepareMsg(string subText)
+		{
+			const int defaultErrorCode = 6;
+			(string phrase, int code)[] errorPhrases = new[]
 			{
-				const int defaultErrorCode = 6;
-				(string phrase, int code)[] errorPhrases = new[]
-				{
 						("not authorized",1 ),
 						("not match",2 ),
 						("Access denied",3 ),
@@ -130,42 +130,42 @@ namespace SubmitInstance
 						("ID_RSSD",5 )
 				};
 
-				StringBuilder sb = new();
+			StringBuilder sb = new();
 
-				int errorCode = defaultErrorCode;
-				for (int i = 0; i < errorPhrases.Length; i++)
-					if (subText.IndexOf(errorPhrases[i].phrase) > 0)
-						errorCode = i;
+			int errorCode = defaultErrorCode;
+			for (int i = 0; i < errorPhrases.Length; i++)
+				if (subText.IndexOf(errorPhrases[i].phrase) > 0)
+					errorCode = i;
 
-				sb.AppendLine("A problem was encountered while attempting to submit your Call Report to the CDR.");
-				switch (errorCode)
-				{
-					case 1:
-						sb.AppendLine("Contact the FFIEC CDR Help Desk at toll-free (888)237-3111 for assistance.");
-						break;
-					case 4:
-						sb.AppendLine("Contact the FFIEC CDR Help Desk at toll-free (888)237-3111 for assistance.");
-						break;
-					case 5:
-					case defaultErrorCode:
-						sb.AppendJoin("Error", errorCode, subText);
-						break;
-					case 2:
-						sb.AppendLine("Invalid User Name or Password, or User is locked.");
-						sb.AppendLine("Contact the FFIEC CDR Help Desk at toll-free (888)237-3111 for assistance.");
-						break;
-					case 3:
-						sb.AppendLine("Invalid User Name or Password, User is locked, or mandatory training must be completed.");
-						sb.AppendLine("Contact the FFIEC CDR Help Desk at toll-free (888)237-3111 for assistance.");
-						break;
-				}
-
-				sb.AppendLine("Contact the FFIEC CDR Help Desk at toll-free (888)237-3111 for assistance.");
-				return sb.ToString();
+			sb.AppendLine("A problem was encountered while attempting to submit your Call Report to the CDR.");
+			switch (errorCode)
+			{
+				case 1:
+					sb.AppendLine("Contact the FFIEC CDR Help Desk at toll-free (888)237-3111 for assistance.");
+					break;
+				case 4:
+					sb.AppendLine("Contact the FFIEC CDR Help Desk at toll-free (888)237-3111 for assistance.");
+					break;
+				case 5:
+				case defaultErrorCode:
+					sb.AppendJoin("Error", errorCode, subText);
+					break;
+				case 2:
+					sb.AppendLine("Invalid User Name or Password, or User is locked.");
+					sb.AppendLine("Contact the FFIEC CDR Help Desk at toll-free (888)237-3111 for assistance.");
+					break;
+				case 3:
+					sb.AppendLine("Invalid User Name or Password, User is locked, or mandatory training must be completed.");
+					sb.AppendLine("Contact the FFIEC CDR Help Desk at toll-free (888)237-3111 for assistance.");
+					break;
 			}
+
+			sb.AppendLine("Contact the FFIEC CDR Help Desk at toll-free (888)237-3111 for assistance.");
+			return sb.ToString();
+		}
 	}
 
-	[XmlRoot("SubmitInstanceData",  Namespace = "http://ffiec.gov/cdr/services/")]
+	[XmlRoot("SubmitInstanceData", Namespace = "http://ffiec.gov/cdr/services/")]
 	public class SubmitInstanceDataRequest
 	{
 		[XmlElement("userName")]
@@ -174,5 +174,5 @@ namespace SubmitInstance
 		public string Password { get; set; }
 		[XmlElement("instanceData")]
 		public string InstanceData { get; set; }
-	} 
+	}
 }

@@ -42,7 +42,7 @@ else
 }
 PrintArgs(param);
 
-bool result = await new Submitter(new InstanceReader(), new InstancePoster()).Submit(param);
+bool result = await new Submitter(new InstanceReader(), new InstancePoster(), new Settings()).Submit(param);
 if (result)
 {
 	Console.WriteLine("Completed");
