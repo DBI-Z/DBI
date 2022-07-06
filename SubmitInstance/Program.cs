@@ -97,7 +97,7 @@ void PrintArgs(SubmitParam args)
 	string exeName = Process.GetCurrentProcess().MainModule.ModuleName;
 	Console.Write(exeName + " ");
 	Console.Write(args.Username + " ");
-	Console.Write(args.Password + " ");
+	Console.Write(new string('*', args.Password.Length) + " ");
 	Console.Write(args.Filename + " ");
 	Console.Write(args.Prod ? "live" : "test");
 	Console.WriteLine(string.Empty);

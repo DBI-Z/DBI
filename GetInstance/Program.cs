@@ -57,7 +57,7 @@ void PrintArgs(GetInstanceRequest args)
 	string exeName = Process.GetCurrentProcess().MainModule.ModuleName;
 	Console.Write(exeName + " ");
 	Console.Write(args.Username + " ");
-	Console.Write(args.Password + " ");
+	Console.Write(new string('*', args.Password.Length) + " ");
 	Console.Write(args.DataSeriesName + " ");
 	Console.Write(args.IdRssd + " ");
 	Console.Write(args.NumberOfPriorPeriods + " ");
