@@ -1,11 +1,7 @@
 ﻿using SimpleSOAPClient;
-using SimpleSOAPClient.Exceptions;
 using SimpleSOAPClient.Helpers;
 using SimpleSOAPClient.Models;
-using System.Text;
-using System.Xml;
 using System.Xml.Linq;
-using System.Xml.XPath;
 
 namespace GetInstance
 {
@@ -27,8 +23,10 @@ namespace GetInstance
 			SoapEnvelope responseEnvelope = null;
 			using (var client = new SoapHelper().GetInstance())
 				responseEnvelope = await GetResponse(client, requestEnvelope);
-			XDocument responseBody = new(responseEnvelope.Body.Value);
-			return responseBody;
+			if (responseEnvelope == null)
+				return new XDocument();
+			else 
+				return new XDocument(responseEnvelope.Body.Value);
 		}
 
 		async Task<SoapEnvelope> GetResponse(SoapClient client, SoapEnvelope requestEnv)

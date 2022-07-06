@@ -27,7 +27,7 @@ namespace GetInstance
 
 			Console.WriteLine(responseBody.ToString());
 			GetInstanceResponse response = new Cdr().ExtractGetResponse(responseBody);
-			bool IsSuccessfulGetInstance = response.Code == 0; 
+			bool IsSuccessfulGetInstance = response?.Code == 0; 
 			if (IsSuccessfulGetInstance)
 			{
 				Console.WriteLine("3. Processing CDR Data: ");
