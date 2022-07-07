@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GetInstance.Test", "GetInst
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SubmitInstance.Test", "SubmitInstance.Test\SubmitInstance.Test.csproj", "{DB32FE17-40DA-4047-8559-DA7866F376B3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GetInstance.WinForms", "GetInstance.WinForms\GetInstance.WinForms.csproj", "{E7185CA0-1BFE-43D5-A412-3F5B824BBB3F}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SharedProject1", "SharedProject1\SharedProject1.shproj", "{BB1308A5-9BF9-4C93-9B11-97F09209770B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,15 +35,16 @@ Global
 		{DB32FE17-40DA-4047-8559-DA7866F376B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DB32FE17-40DA-4047-8559-DA7866F376B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DB32FE17-40DA-4047-8559-DA7866F376B3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E7185CA0-1BFE-43D5-A412-3F5B824BBB3F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E7185CA0-1BFE-43D5-A412-3F5B824BBB3F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E7185CA0-1BFE-43D5-A412-3F5B824BBB3F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E7185CA0-1BFE-43D5-A412-3F5B824BBB3F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {55E37CE4-FDF2-4FAB-ABFD-4DE0B03EE052}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		SharedProject1\SharedProject1.projitems*{af1c4491-13d0-4bf6-aa0d-3dde27132aeb}*SharedItemsImports = 5
+		SharedProject1\SharedProject1.projitems*{bb1308a5-9bf9-4c93-9b11-97f09209770b}*SharedItemsImports = 13
+		SharedProject1\SharedProject1.projitems*{e1668118-c65d-4f16-9a84-b7d33683925a}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal

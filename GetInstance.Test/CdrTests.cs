@@ -1,4 +1,5 @@
-﻿using System.Xml.Linq;
+﻿using Moq;
+using System.Xml.Linq;
 
 namespace GetInstance.Test
 {
@@ -8,7 +9,9 @@ namespace GetInstance.Test
 		public void Extract_ErrorResponse_AccessDenied()
 		{
 			//Arrange
-			Cdr cdr = new();
+			Mock<IDisplayer> displayerStub = new Mock<IDisplayer>();
+
+			Cdr cdr = new(displayerStub.Object);
 			XDocument errorResponse = XDocument.Load(new StringReader(ErrorResponse.SoapBody));
 
 			//Act
@@ -24,7 +27,8 @@ namespace GetInstance.Test
 		public void Extract_SpecResponse_CodeIsZero()
 		{
 			//Arrange
-			Cdr cdr = new();
+			Mock<IDisplayer> displayerStub = new();
+			Cdr cdr = new(displayerStub.Object);
 			XDocument specResponse = XDocument.Load(new StringReader(TestInputGetInstanceResponse.SuccessfulSpecResponse));
 
 			//Act
@@ -41,7 +45,8 @@ namespace GetInstance.Test
 		public void Extract_SuccessfulResponse_CodeIsZero()
 		{
 			//Arrange
-			Cdr cdr = new();
+			Mock<IDisplayer> displayerStub = new();
+			Cdr cdr = new(displayerStub.Object);
 			XDocument errorResponse = XDocument.Load(new StringReader(SuccessfulResponse1.SoapBody));
 
 			//Act

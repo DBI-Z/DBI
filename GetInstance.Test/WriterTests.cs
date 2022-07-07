@@ -1,5 +1,4 @@
 ﻿using Moq;
-using GetInstance;
 using System.Xml.Linq;
 
 namespace GetInstance.Test
@@ -10,7 +9,8 @@ namespace GetInstance.Test
 		public void Write_Sample_Quoted()
 		{
 			//Arrange
-			var writer = new CsvWriter();
+			Mock<IDisplayer> displayerStub = new();
+			var writer = new CsvWriter(displayerStub.Object);
 			MemoryStream csv = new();
 			WriteFormat[] writeFormats =
 			{
@@ -50,12 +50,13 @@ namespace GetInstance.Test
 		public void Convert_XmlToCsv_CorrectFormat()
 		{
 			//Arrange
-			var writer = new CsvWriter();
+			Mock<IDisplayer> displayerStub = new();
+			var writer = new CsvWriter(displayerStub.Object);
 			Mock<IInstanceDownloader> downloadStub = new();
 			XDocument soapBody = XDocument.Load(new StringReader(LongXbrl.Sample));
-			var getter = new InstanceGetter(downloadStub.Object,  writer, new Extractor());
+			var getter = new InstanceGetter(downloadStub.Object,  writer, new Extractor(displayerStub.Object), displayerStub.Object);
 			MemoryStream memory = new();
-			var extractor = new Extractor();
+			var extractor = new Extractor(displayerStub.Object);
 
 			//Act
 			XDocument xbrl = new XDocument(soapBody.Element(XName.Get("xbrl", "http://www.xbrl.org/2003/instance")));

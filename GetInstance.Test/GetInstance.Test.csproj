@@ -6,6 +6,8 @@
     <Nullable>enable</Nullable>
 
     <IsPackable>false</IsPackable>
+
+    <OutputType>WinExe</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,8 +24,6 @@
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\GetInstance\GetInstance.csproj" />
-  </ItemGroup>
+  <Import Project="..\SharedProject1\SharedProject1.projitems" Label="Shared" />
 
 </Project>
