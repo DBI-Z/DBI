@@ -2,10 +2,12 @@
 using GetInstance;
 using System.Globalization;
 
-IDisplayer displayer = new ConsoleDisplayer();
 
-//ApplicationConfiguration.Initialize();
-//Application.Run(new Form1());
+ApplicationConfiguration.Initialize();
+Form1 f = new();
+IDisplayer displayer = new TextBoxDisplayer(f.LogDisplayTextbox);
+f.Displayer = displayer;
+Application.Run(f);
 
 GetInstanceRequest param;
 if (args.Length == 0)
