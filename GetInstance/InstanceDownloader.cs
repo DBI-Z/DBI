@@ -1,16 +1,19 @@
 ﻿using SimpleSOAPClient;
-using SimpleSOAPClient.Exceptions;
 using SimpleSOAPClient.Helpers;
 using SimpleSOAPClient.Models;
-using System.Text;
-using System.Xml;
 using System.Xml.Linq;
-using System.Xml.XPath;
 
 namespace GetInstance
 {
 	internal class InstanceDownloader : IInstanceDownloader
 	{
+		IDisplayer displayer;
+
+		public InstanceDownloader(IDisplayer displayer)
+		{
+			this.displayer = displayer;
+		}
+
 		public async Task<XDocument> Download(GetInstanceRequest param)
 		{
 			var requestEnvelope = SoapEnvelope.Prepare().Body(param);
@@ -32,9 +35,9 @@ namespace GetInstance
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine(ex.Message);
-				Console.WriteLine("Unable to connect to the Internet. Some firewalls require altering permissions to allow EasyCall Report to communicate with the Central Data Repository (CDR).  Your information technology department should be made aware that this communication uses HTTPS via port 443.");
-				Console.WriteLine("Also, the FFIEC CDR system now only supports TLS 1.2;  please insure your operating system supports said.");
+				displayer.WriteLine(ex.Message);
+				displayer.WriteLine("Unable to connect to the Internet. Some firewalls require altering permissions to allow EasyCall Report to communicate with the Central Data Repository (CDR).  Your information technology department should be made aware that this communication uses HTTPS via port 443.");
+				displayer.WriteLine("Also, the FFIEC CDR system now only supports TLS 1.2;  please insure your operating system supports said.");
 			}
 			return null;
 		}

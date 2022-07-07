@@ -12,12 +12,14 @@ namespace GetInstance
 		IInstanceWriter writer;
 		IInstanceDownloader downloader;
 		IExtractor extractor;
+		IDisplayer displayer;
 
-		public InstanceGetter(IInstanceDownloader downloader, IInstanceWriter writer, IExtractor extractor)
+		public InstanceGetter(IInstanceDownloader downloader, IInstanceWriter writer, IExtractor extractor, IDisplayer displayer)
 		{
 			this.writer = writer;
 			this.downloader = downloader;
 			this.extractor = extractor;
+			this.displayer = displayer;
 		}
 
 		public async Task Get(GetInstanceRequest param)
@@ -25,12 +27,12 @@ namespace GetInstance
 			string appFolder = Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName);
 			XDocument responseBody = await downloader.Download(param);
 
-			Console.WriteLine(responseBody.ToString());
-			GetInstanceResponse response = new Cdr().ExtractGetResponse(responseBody);
+			displayer.WriteLine(responseBody.ToString());
+			GetInstanceResponse response = new Cdr(displayer).ExtractGetResponse(responseBody);
 			bool IsSuccessfulGetInstance = response?.Code == 0; 
 			if (IsSuccessfulGetInstance)
 			{
-				Console.WriteLine("3. Processing CDR Data: ");
+				displayer.WriteLine("3. Processing CDR Data: ");
 
 				IEnumerable<XElement> ins = response.InstanceDocuments.Element("InstanceDocuments").Elements("InstanceDocument");
 					List<WriteFormat> wf = new();
@@ -43,13 +45,13 @@ namespace GetInstance
 					{
 						if (xbrlEndTime.Date == param.ReportingPeriodEndDate.Date)
 						{
-							Console.WriteLine($"Skipping processing of current period: {period}");
+							displayer.WriteLine($"Skipping processing of current period: {period}");
 							continue;
 						}
 					}
 					else
 					{
-						Console.WriteLine($"Cannot read period as date: {period}");
+						displayer.WriteLine($"Cannot read period as date: {period}");
 					}
 					List<WriteFormat> thisWf = extractor.Extract(xbrl);
 					wf.AddRange(thisWf);
@@ -58,9 +60,9 @@ namespace GetInstance
 				string instanceFileName = Path.Combine(appFolder, currentPeriod + "-Instance.txt");
 				using (FileStream instanceFile = new(instanceFileName, FileMode.Create))
 					writer.Write(records: wf, instanceFile);
-				Console.WriteLine("Completed");
-				Console.WriteLine("CDR Live Update: Successful");
-				Console.WriteLine("Prior quarter history data has been downloaded successfully.");
+				displayer.WriteLine("Completed");
+				displayer.WriteLine("CDR Live Update: Successful");
+				displayer.WriteLine("Prior quarter history data has been downloaded successfully.");
 			}
 			else
 			{
@@ -108,9 +110,9 @@ namespace GetInstance
 		{
 			if (File.Exists(instanceFileName))
 			{
-				Console.WriteLine("Although the Live CDR Update was not successful, prior quarter data is available on your hard drive.");
-				Console.WriteLine("It should be safe to use this data in verifying your Call Report.");
-				Console.WriteLine("Do you want to continue Updating History with this prior quarter data? Y/N");
+				displayer.WriteLine("Although the Live CDR Update was not successful, prior quarter data is available on your hard drive.");
+				displayer.WriteLine("It should be safe to use this data in verifying your Call Report.");
+				displayer.WriteLine("Do you want to continue Updating History with this prior quarter data? Y/N");
 
 				string yn = string.Empty;
 				Func<bool> isaYes = () => string.Compare("Y", yn?.Trim(), ignoreCase: true) == 0;
@@ -121,15 +123,15 @@ namespace GetInstance
 					yn = Console.ReadLine();
 					if (isaNo())
 					{
-						Console.WriteLine("Update History was not completed.");
-						Console.WriteLine("Live CDR Update Error");
+						displayer.WriteLine("Update History was not completed.");
+						displayer.WriteLine("Live CDR Update Error");
 						break;
 					}
 				}
 			}
 			else
 			{
-				Console.WriteLine("Update History was not completed.");
+				displayer.WriteLine("Update History was not completed.");
 			}
 		}
 

@@ -6,6 +6,13 @@ namespace GetInstance
 {
 	public class PriorPeriodExtractor : IExtractor
 	{
+		IDisplayer displayer;
+
+		public PriorPeriodExtractor(IDisplayer displayer)
+		{
+			this.displayer = displayer;
+		}
+
 		public List<WriteFormat> Extract(XDocument xbrl)
 		{
 			XPathNodeIterator ccRecordsIterator = GetCCIterator(xbrl);
@@ -34,7 +41,7 @@ namespace GetInstance
 					if (isConceptDataRecord)
 					{
 						ccElements.Current.MoveToParent();
-						Console.WriteLine(mtContextRef + " -> " + mtBool.ToString());
+						displayer.WriteLine(mtContextRef + " -> " + mtBool.ToString());
 
 						wf.Add(new WriteFormat
 						{
@@ -63,7 +70,7 @@ namespace GetInstance
 				}
 				else
 				{
-					Console.WriteLine("no text child node?");
+					displayer.WriteLine("no text child node?");
 				}
 			}
 			return wf;

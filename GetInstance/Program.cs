@@ -2,6 +2,11 @@
 using GetInstance;
 using System.Globalization;
 
+IDisplayer displayer = new ConsoleDisplayer();
+
+//ApplicationConfiguration.Initialize();
+//Application.Run(new Form1());
+
 GetInstanceRequest param;
 if (args.Length == 0)
 {
@@ -14,7 +19,7 @@ else
 	if (args.Length != expectedArgCount)
 	{
 		param = null;
-		Console.WriteLine("There should be exactly " + expectedArgCount + " arguments. Example:");
+		displayer.WriteLine("There should be exactly " + expectedArgCount + " arguments. Example:");
 		PrintArgs(TestInput.TestRequest);
 		return -1;
 	}
@@ -33,7 +38,7 @@ else
 		}
 		else
 		{
-			Console.WriteLine("NumberOfPriorPeriods should be a number. Example:");
+			displayer.WriteLine("NumberOfPriorPeriods should be a number. Example:");
 			PrintArgs(TestInput.TestRequest);
 			return -1;
 
@@ -44,7 +49,7 @@ else
 		}
 		else
 		{
-			Console.WriteLine($"ReportingPeriodEndDate should have date format {GetInstanceRequest.DateFormat}. Example:");
+			displayer.WriteLine($"ReportingPeriodEndDate should have date format {GetInstanceRequest.DateFormat}. Example:");
 			PrintArgs(TestInput.TestRequest);
 			return -1;
 		}
@@ -55,21 +60,21 @@ else
 void PrintArgs(GetInstanceRequest args)
 {
 	string exeName = Process.GetCurrentProcess().MainModule.ModuleName;
-	Console.Write(exeName + " ");
-	Console.Write(args.Username + " ");
-	Console.Write(new string('*', args.Password.Length) + " ");
-	Console.Write(args.DataSeriesName + " ");
-	Console.Write(args.IdRssd + " ");
-	Console.Write(args.NumberOfPriorPeriods + " ");
-	Console.Write(args.ReportingPeriodEndDate.ToString(GetInstanceRequest.DateFormat) + " ");
-	Console.WriteLine(string.Empty);
-	Console.WriteLine($"{exeName} Username Password DataSeriesName IdRSSD NumberOfPriorPeriods ReportingPeriodEndDate");
+	displayer.Write(exeName + " ");
+	displayer.Write(args.Username + " ");
+	displayer.Write(new string('*', args.Password.Length) + " ");
+	displayer.Write(args.DataSeriesName + " ");
+	displayer.Write(args.IdRssd + " ");
+	displayer.Write(args.NumberOfPriorPeriods + " ");
+	displayer.Write(args.ReportingPeriodEndDate.ToString(GetInstanceRequest.DateFormat) + " ");
+	displayer.WriteLine(string.Empty);
+	displayer.WriteLine($"{exeName} Username Password DataSeriesName IdRSSD NumberOfPriorPeriods ReportingPeriodEndDate");
 }
 
-Console.WriteLine(string.Empty);
-Console.WriteLine("Updating history with prior quarter data from the CDR...");
-Console.WriteLine("1. Logging on to CDR: ");
-await new InstanceGetter(new Prior2Downloader(), new CsvWriter(), new Extractor()).Get(param);
+displayer.WriteLine(string.Empty);
+displayer.WriteLine("Updating history with prior quarter data from the CDR...");
+displayer.WriteLine("1. Logging on to CDR: ");
+await new InstanceGetter(new Prior2Downloader(displayer), new CsvWriter(displayer), new Extractor(displayer), displayer).Get(param);
 
 return 0;
 

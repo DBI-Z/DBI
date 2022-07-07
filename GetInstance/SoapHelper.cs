@@ -17,24 +17,24 @@ namespace GetInstance
                         {
                             OnSoapEnvelopeRequestAsyncAction = async (c, d, cancellationToken) =>
                             {
-                                //Console.WriteLine(nameof(DelegatingSoapHandler.OnSoapEnvelopeRequestAsyncAction));
+                                //displayer.WriteLine(nameof(DelegatingSoapHandler.OnSoapEnvelopeRequestAsyncAction));
                                 // d.Envelope.WithHeaders(
                                 //KnownHeader.Oasis.Security.UsernameTokenAndPasswordText(
                                 //    "some-user", "some-password"));
                             },
                             OnHttpRequestAsyncAction = async (soapClient, d, cancellationToken) =>
                             {
-                                //Console.WriteLine(nameof(DelegatingSoapHandler.OnHttpRequestAsyncAction));
+                                //displayer.WriteLine(nameof(DelegatingSoapHandler.OnHttpRequestAsyncAction));
                                 // Logger.LogTrace(   "SOAP Outbound Request -> {0} {1}({2})\n{3}",  d.Request.Method, d.Url, d.Action, await d.Request.Content.ReadAsStringAsync());
                             },
                             OnHttpResponseAsyncAction = async (soapClient, d, cancellationToken) =>
                             {
-                                //Console.WriteLine(nameof(DelegatingSoapHandler.OnHttpResponseAsyncAction));
+                                //displayer.WriteLine(nameof(DelegatingSoapHandler.OnHttpResponseAsyncAction));
                                 //   Logger.LogTrace(  "SOAP Outbound Response -> {0}({1}) {2} {3}\n{4}", d.Url, d.Action, (int)d.Response.StatusCode, d.Response.StatusCode, await d.Response.Content.ReadAsStringAsync());
                             },
                             OnSoapEnvelopeResponseAsyncAction = async (soapClient, d, cancellationToken) =>
                             {
-                                //Console.WriteLine(nameof(DelegatingSoapHandler.OnSoapEnvelopeResponseAsyncAction));
+                                //displayer.WriteLine(nameof(DelegatingSoapHandler.OnSoapEnvelopeResponseAsyncAction));
                             }
                         });
             return a;

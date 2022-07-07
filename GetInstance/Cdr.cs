@@ -4,6 +4,12 @@ namespace GetInstance
 {
 	public class Cdr
 	{
+		IDisplayer displayer;
+
+		public Cdr(IDisplayer displayer)
+		{
+			this.displayer = displayer;
+		}
 		public GetInstanceResponse ExtractGetResponse(XDocument responseBody)
 		{
 			if (responseBody?.Element(XName.Get("GetInstanceDataResponse", "http://ffiec.gov/cdr/services/"))
