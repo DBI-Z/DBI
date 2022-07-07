@@ -17,7 +17,7 @@ namespace GetInstance
 		public GetInstanceRequest GetRequest()
 		{
 			const int expectedArgCount = 6;
-			GetInstanceRequest request = null;
+			GetInstanceRequest request;
 
 			if (args.Length == expectedArgCount)
 			{
@@ -39,18 +39,24 @@ namespace GetInstance
 					{
 						displayer.WriteLine($"ReportingPeriodEndDate should have date format {GetInstanceRequest.DateFormat}. Example:");
 						PrintArgs(TestRequest);
+						request = null;
 					}
 				}
 				else
 				{
 					displayer.WriteLine("NumberOfPriorPeriods should be a number. Example:");
 					PrintArgs(TestRequest);
+					request = null;
 				}
 			}
-			else if(args.Length !=0)
+			else if (args.Length == 0)
 			{
+				request = null;
+			}
+			else { 
 				displayer.WriteLine("There should be exactly " + expectedArgCount + " arguments. Example:");
 				PrintArgs(TestRequest);
+				request = null;
 			}
 			return request;
 		}

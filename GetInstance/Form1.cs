@@ -5,22 +5,6 @@
 		string[] cmdLineArgs;
 		bool fromCmdLineArgs;
 
-		GetInstanceRequest RequestFromCommandLineOrDefault()
-		{
-			ArgumentProcessor processor = new(cmdLineArgs, displayer);
-			GetInstanceRequest request = processor.GetRequest();
-			if (request == null)
-			{
-				request = ArgumentProcessor.TestRequest;
-				fromCmdLineArgs = false;
-			}
-			else
-			{
-				fromCmdLineArgs = true;
-			}
-			return request;
-		}
-
 		public Form1(string[] args)
 		{
 			InitializeComponent();
@@ -34,11 +18,17 @@
 		private void Form1_Shown(object sender, EventArgs e)
 		{
 			displayer.WriteLine("Welcome to EasyCall Report's Live CDR Update");
-			Fill(RequestFromCommandLineOrDefault());
-			if (fromCmdLineArgs)
+
+			ArgumentProcessor processor = new(cmdLineArgs, displayer);
+			GetInstanceRequest request = processor.GetRequest();
+			if (request == null)
 			{
-				GetInstanceRequest uiRequest = GetRequestFromUI();
-				GetCdr(uiRequest);
+				Fill(ArgumentProcessor.TestRequest);
+			}
+			else
+			{
+				Fill(request);
+				GetCdr(request);
 			}
 		}
 
@@ -53,6 +43,7 @@
 
 		GetInstanceRequest GetRequestFromUI()
 		{
+			List<string> nonEmptyArgs = new();
 			string[] uiArgs = new string[]
 			{
 				txtUsername.Text,
@@ -62,12 +53,16 @@
 				txtPeriods.Text,
 				txtDate.Text,
 			};
-			return new ArgumentProcessor(uiArgs, displayer).GetRequest();
+
+			foreach (string arg in uiArgs)
+				if (!string.IsNullOrWhiteSpace(arg))
+					nonEmptyArgs.Add(arg);
+
+			return new ArgumentProcessor(nonEmptyArgs.ToArray(), displayer).GetRequest();
 		}
 
 		async Task GetCdr(GetInstanceRequest request)
 		{
-			displayer.WriteLine(string.Empty);
 			displayer.WriteLine("Updating history with prior quarter data from the CDR...");
 			displayer.WriteLine("1. Logging on to CDR: ");
 			await new InstanceGetter(new Prior2Downloader(displayer), new CsvWriter(displayer), new Extractor(displayer), displayer).Get(request);
@@ -80,8 +75,11 @@
 
 		private void btnGetCdr_Click(object sender, EventArgs e)
 		{
+			displayer.WriteLine(string.Empty);
+			displayer.WriteLine("-----------------");
 			GetInstanceRequest uiRequest = GetRequestFromUI();
-			_ = GetCdr(uiRequest);
+			if (uiRequest != null)
+				_ = GetCdr(uiRequest);
 		}
 
 		private void btnClose_Click(object sender, EventArgs e)

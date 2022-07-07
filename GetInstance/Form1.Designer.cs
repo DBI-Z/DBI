@@ -51,16 +51,16 @@
 			// 
 			// txtLog
 			// 
-			this.txtLog.Location = new System.Drawing.Point(183, 6);
+			this.txtLog.Location = new System.Drawing.Point(12, 24);
 			this.txtLog.Multiline = true;
 			this.txtLog.Name = "txtLog";
-			this.txtLog.Size = new System.Drawing.Size(549, 159);
+			this.txtLog.Size = new System.Drawing.Size(712, 159);
 			this.txtLog.TabIndex = 19;
 			// 
 			// pictureBox1
 			// 
 			this.pictureBox1.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox1.Image")));
-			this.pictureBox1.Location = new System.Drawing.Point(12, 6);
+			this.pictureBox1.Location = new System.Drawing.Point(9, 199);
 			this.pictureBox1.Name = "pictureBox1";
 			this.pictureBox1.Size = new System.Drawing.Size(152, 146);
 			this.pictureBox1.TabIndex = 18;
@@ -69,7 +69,7 @@
 			// label5
 			// 
 			this.label5.AutoSize = true;
-			this.label5.Location = new System.Drawing.Point(65, 599);
+			this.label5.Location = new System.Drawing.Point(167, 609);
 			this.label5.Name = "label5";
 			this.label5.Size = new System.Drawing.Size(56, 25);
 			this.label5.TabIndex = 17;
@@ -77,21 +77,21 @@
 			// 
 			// txtPeriods
 			// 
-			this.txtPeriods.Location = new System.Drawing.Point(376, 536);
+			this.txtPeriods.Location = new System.Drawing.Point(478, 546);
 			this.txtPeriods.Name = "txtPeriods";
 			this.txtPeriods.Size = new System.Drawing.Size(73, 31);
 			this.txtPeriods.TabIndex = 16;
 			// 
 			// txtRssd
 			// 
-			this.txtRssd.Location = new System.Drawing.Point(142, 593);
+			this.txtRssd.Location = new System.Drawing.Point(244, 603);
 			this.txtRssd.Name = "txtRssd";
 			this.txtRssd.Size = new System.Drawing.Size(137, 31);
 			this.txtRssd.TabIndex = 14;
 			// 
 			// txtDate
 			// 
-			this.txtDate.Location = new System.Drawing.Point(65, 536);
+			this.txtDate.Location = new System.Drawing.Point(167, 546);
 			this.txtDate.Name = "txtDate";
 			this.txtDate.Size = new System.Drawing.Size(246, 31);
 			this.txtDate.TabIndex = 15;
@@ -99,7 +99,7 @@
 			// label4
 			// 
 			this.label4.AutoSize = true;
-			this.label4.Location = new System.Drawing.Point(372, 508);
+			this.label4.Location = new System.Drawing.Point(474, 518);
 			this.label4.Name = "label4";
 			this.label4.Size = new System.Drawing.Size(204, 25);
 			this.label4.TabIndex = 13;
@@ -128,7 +128,7 @@
 			// label3
 			// 
 			this.label3.AutoSize = true;
-			this.label3.Location = new System.Drawing.Point(65, 472);
+			this.label3.Location = new System.Drawing.Point(167, 482);
 			this.label3.Name = "label3";
 			this.label3.Size = new System.Drawing.Size(181, 25);
 			this.label3.TabIndex = 12;
@@ -140,7 +140,7 @@
 			this.groupBox1.Controls.Add(this.txtUsername);
 			this.groupBox1.Controls.Add(this.label2);
 			this.groupBox1.Controls.Add(this.label1);
-			this.groupBox1.Location = new System.Drawing.Point(65, 189);
+			this.groupBox1.Location = new System.Drawing.Point(167, 199);
 			this.groupBox1.Name = "groupBox1";
 			this.groupBox1.Size = new System.Drawing.Size(557, 212);
 			this.groupBox1.TabIndex = 9;
@@ -183,7 +183,7 @@
 			// lblFormat
 			// 
 			this.lblFormat.AutoSize = true;
-			this.lblFormat.Location = new System.Drawing.Point(65, 501);
+			this.lblFormat.Location = new System.Drawing.Point(167, 511);
 			this.lblFormat.Name = "lblFormat";
 			this.lblFormat.Size = new System.Drawing.Size(76, 25);
 			this.lblFormat.TabIndex = 12;
