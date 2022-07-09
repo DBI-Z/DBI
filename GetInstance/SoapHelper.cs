@@ -10,8 +10,7 @@ namespace GetInstance
         public SoapClient GetInstance() => soapClient == null ? soapClient = Prepare() : soapClient;
 
         SoapClient Prepare()
-        {
-
+        { 
             var a = SoapClient.Prepare()
                         .WithHandler(new DelegatingSoapHandler
                         {

@@ -10,7 +10,7 @@ Namespace GetInstance
 			Me.displayer = displayer
 		End Sub
 
-		Public Sub IInstanceWriter_Write(records As IEnumerable(Of WriteFormat), instanceFile As Stream) Implements IInstanceWriter.Write
+		Public Sub Write(records As IEnumerable(Of WriteFormat), instanceFile As Stream) Implements IInstanceWriter.Write
 			Dim sw As StreamWriter = New StreamWriter(instanceFile)
 			For Each writeFormat In records
 				Dim csv As String = String.Join(",", Quoted(writeFormat.MtMdrm), Quoted(writeFormat.MtContextRef), Quoted(writeFormat.MtUnitRef), Quoted(writeFormat.MtDecimals), Quoted(writeFormat.MtData))
