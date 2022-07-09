@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects Condition="'$(MSBuildVersion)' == '' Or '$(MSBuildVersion)' &lt; '16.0'">$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>31171178-a405-4d9f-92a2-5e28792f368e</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>SharedProject1</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Cdr.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)CsvWriter.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extractor.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)GetInstanceRequest.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)GetInstanceResponse.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)IDisplayer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)IExtractor.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)IInstanceDownloader.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)IInstanceWriter.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)InstanceGetter.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)PriorPeriodExtractor.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)WriteFormat.vb" />
+  </ItemGroup>
+</Project>
