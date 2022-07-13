@@ -6,7 +6,7 @@ namespace GetInstance.Test
 	public class GetterTests
 	{
 		[Fact]
-		public void Download_AccessDenied_NoWrite()
+		public async Task Download_AccessDenied_NoWrite()
 		{
 			//Arrange
 			Mock<IInstanceDownloader> downloadStub = new();
@@ -19,12 +19,12 @@ namespace GetInstance.Test
 			var getter = new InstanceGetter(downloadStub.Object, writeStub.Object, extractorStub.Object, displayerStub.Object);
 
 			//Act
-			var getterResult = getter.Get(TestCredentials);
+			await getter.Get(TestCredentials);
 			writeStub.VerifyNoOtherCalls();
 		}
 
 		[Fact]
-		public void Download_Basic_Successful()
+		public async Task Download_Basic_Successful()
 		{
 			//Arrange
 			Mock<IInstanceDownloader> downloadStub = new Mock<IInstanceDownloader>();
@@ -38,16 +38,19 @@ namespace GetInstance.Test
 
 			writeStub.Setup(a => a.Write(It.IsAny<List<WriteFormat>>(), It.IsAny<Stream>()));
 
+			extractorStub.Setup(a => a.Extract(It.IsAny<XDocument>())).Returns(new List<WriteFormat>());
+
 			var getter = new InstanceGetter(downloadStub.Object, writeStub.Object, extractorStub.Object, displayerStub.Object);
 			//Act
-			var getterResult = getter.Get(TestCredentials);
+ 
+		await getter.Get(TestCredentials); 
 
 			//Assert
 			//Complete without exception.
 		}
 
 		[Fact]
-		public void Download_Write_Empty()
+		public async Task Download_Write_Empty()
 		{
 			//Arrange
 			Mock<IInstanceDownloader> downloadStub = new Mock<IInstanceDownloader>();
@@ -62,14 +65,14 @@ namespace GetInstance.Test
 			, displayerStub.Object);
 
 			//Act
-			var getterResult = getter.Get(TestCredentials);
+			await  getter.Get(TestCredentials);
 
 			//Assert? 
 			writeStub.Verify(a => a.Write(It.Is<List<WriteFormat>>(b => b.Count == 0), It.IsAny<Stream>()));
 		}
 
 		[Fact]
-		public void Download_Write_Multiple()
+		public async Task Download_Write_Multiple()
 		{
 			//Arrange
 			Mock<IInstanceDownloader> downloadStub = new();
@@ -82,7 +85,7 @@ namespace GetInstance.Test
 			var getter = new InstanceGetter(downloadStub.Object, writeStub.Object, new Extractor(displayerStub.Object), displayerStub.Object);
 
 			//Act
-			_ = getter.Get(TestCredentials);
+			await getter.Get(TestCredentials);
 
 			//Assert
 			writeStub.Verify(a => a.Write(It.Is<List<WriteFormat>>(b => b.Count == 5417), It.IsAny<Stream>()));
@@ -90,7 +93,7 @@ namespace GetInstance.Test
 		}
 
 		[Fact]
-		public void Download_Write_SkipCurrentPeriod()
+		public async Task Download_Write_SkipCurrentPeriod()
 		{
 			//Arrange
 			Mock<IInstanceDownloader> downloadStub = new();
@@ -104,7 +107,7 @@ namespace GetInstance.Test
 			var getter = new InstanceGetter(downloadStub.Object, writeStub.Object, new Extractor(displayerStub.Object), displayerStub.Object);
 
 			//Act
-			_ = getter.Get(TestCredentials);
+			await  getter.Get(TestCredentials);
 
 			//Assert
 			writeStub.Verify(a => a.Write(It.Is<List<WriteFormat>>(b => b.Count == priorPeriodsRecordCount), It.IsAny<Stream>()));

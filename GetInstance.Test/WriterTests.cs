@@ -11,7 +11,6 @@ namespace GetInstance.Test
 			//Arrange
 			Mock<IDisplayer> displayerStub = new();
 			var writer = new CsvWriter(displayerStub.Object);
-			MemoryStream csv = new();
 			WriteFormat[] writeFormats =
 			{
 				new WriteFormat { MtMdrm = "1", MtContextRef = "2", MtUnitRef = "3", MtDecimals = "4", MtData = "5" },
@@ -22,11 +21,9 @@ namespace GetInstance.Test
 				new WriteFormat { MtMdrm = "RCONFT09", MtContextRef = "CI_141958_2020-06-30", MtUnitRef = "", MtDecimals = "0", MtData = "false" },
 			};
 			//Act
+			MemoryStream csv = new();
 			writer.Write(writeFormats, csv);
-
-			//csv.Seek(0, SeekOrigin.Begin);
 			string[] lines = new string[writeFormats.Length];
-
 			csv.TryGetBuffer(out ArraySegment<byte> buffer);
 			using (StreamReader sr = new(new MemoryStream(buffer.Array)))
 				for (int i = 0; i < lines.Length; i++)
