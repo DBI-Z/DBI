@@ -28,4 +28,10 @@
     <Page Include="Properties\CDR.ini" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="ffiec_141958_2022-03-31.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
