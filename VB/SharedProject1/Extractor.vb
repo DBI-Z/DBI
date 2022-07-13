@@ -2,11 +2,9 @@
 Imports System.Xml.Linq
 Imports System.Xml.XPath
 
-Namespace GetInstance
-	Public Class Extractor
-		Implements IExtractor
-
-		Private displayer As IDisplayer
+Public Class Extractor
+	Implements IExtractor
+	Private displayer As IDisplayer
 
 		Public Sub New(ByVal displayer As IDisplayer)
 			Me.displayer = displayer
@@ -66,5 +64,4 @@ Namespace GetInstance
 
 			Return wf
 		End Function
-	End Class
-End Namespace
+End Class

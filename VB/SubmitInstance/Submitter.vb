@@ -1,11 +1,9 @@
-﻿Imports System.Text
-Imports System.Xml
-Imports System.Xml.Linq
+﻿Imports System.IO
+Imports System.Net.Http
+Imports System.Text
 Imports System.Xml.Serialization
-Imports System.Xml.XPath
 
-Namespace SubmitInstance
-	Public Class Submitter
+Public Class Submitter
 		Private reader As IInstanceReader
 		Private poster As IInstancePoster
 		Private settings As ISettings
@@ -68,69 +66,19 @@ Namespace SubmitInstance
 
 		Private Function PrepareMsg(ByVal subText As String) As String
 			Const defaultErrorCode As Integer = 6
-                        ''' Cannot convert LocalDeclarationStatementSyntax, CONVERSION ERROR: Conversion for TupleType not implemented, please report this issue in '(string phrase, int code)' at character 2666
-'''    at ICSharpCode.CodeConverter.VB.NodesVisitor.DefaultVisit(SyntaxNode node)
-'''    at Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.VisitTupleType(TupleTypeSyntax node)
-'''    at Microsoft.CodeAnalysis.CSharp.Syntax.TupleTypeSyntax.Accept[TResult](CSharpSyntaxVisitor`1 visitor)
-'''    at Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.Visit(SyntaxNode node)
-'''    at ICSharpCode.CodeConverter.VB.CommentConvertingNodesVisitor.DefaultVisit(SyntaxNode node)
-'''    at Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.VisitTupleType(TupleTypeSyntax node)
-'''    at Microsoft.CodeAnalysis.CSharp.Syntax.TupleTypeSyntax.Accept[TResult](CSharpSyntaxVisitor`1 visitor)
-'''    at ICSharpCode.CodeConverter.VB.NodesVisitor.VisitArrayType(ArrayTypeSyntax node)
-'''    at Microsoft.CodeAnalysis.CSharp.Syntax.ArrayTypeSyntax.Accept[TResult](CSharpSyntaxVisitor`1 visitor)
-'''    at Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.Visit(SyntaxNode node)
-'''    at ICSharpCode.CodeConverter.VB.CommentConvertingNodesVisitor.DefaultVisit(SyntaxNode node)
-'''    at Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.VisitArrayType(ArrayTypeSyntax node)
-'''    at Microsoft.CodeAnalysis.CSharp.Syntax.ArrayTypeSyntax.Accept[TResult](CSharpSyntaxVisitor`1 visitor)
-'''    at ICSharpCode.CodeConverter.VB.CommonConversions.RemodelVariableDeclaration(VariableDeclarationSyntax declaration)
-'''    at ICSharpCode.CodeConverter.VB.MethodBodyVisitor.VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
-'''    at Microsoft.CodeAnalysis.CSharp.Syntax.LocalDeclarationStatementSyntax.Accept[TResult](CSharpSyntaxVisitor`1 visitor)
-'''    at Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.Visit(SyntaxNode node)
-'''    at ICSharpCode.CodeConverter.VB.CommentConvertingMethodBodyVisitor.ConvertWithTrivia(SyntaxNode node)
-'''    at ICSharpCode.CodeConverter.VB.CommentConvertingMethodBodyVisitor.DefaultVisit(SyntaxNode node)
-''' 
-''' Input: 
-''' 			(string phrase, int code)[] errorPhrases = new[]
+			Dim errorPhrases() As (Phrase As String, Code As Integer) =
 			{
-						("not authorized",1 ),
-						("not match",2 ),
-						("Access denied",3 ),
-						("valid XML",4 ),
-						("ID_RSSD",5 )
-				};
-
-''' 
-                        ''' Cannot convert LocalDeclarationStatementSyntax, CONVERSION ERROR: Conversion for TupleType not implemented, please report this issue in '()' at character 2879
-'''    at ICSharpCode.CodeConverter.VB.NodesVisitor.DefaultVisit(SyntaxNode node)
-'''    at Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.VisitTupleType(TupleTypeSyntax node)
-'''    at Microsoft.CodeAnalysis.CSharp.Syntax.TupleTypeSyntax.Accept[TResult](CSharpSyntaxVisitor`1 visitor)
-'''    at Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.Visit(SyntaxNode node)
-'''    at ICSharpCode.CodeConverter.VB.CommentConvertingNodesVisitor.DefaultVisit(SyntaxNode node)
-'''    at Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.VisitTupleType(TupleTypeSyntax node)
-'''    at Microsoft.CodeAnalysis.CSharp.Syntax.TupleTypeSyntax.Accept[TResult](CSharpSyntaxVisitor`1 visitor)
-'''    at ICSharpCode.CodeConverter.VB.NodesVisitor.VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
-'''    at Microsoft.CodeAnalysis.CSharp.Syntax.ObjectCreationExpressionSyntax.Accept[TResult](CSharpSyntaxVisitor`1 visitor)
-'''    at Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.Visit(SyntaxNode node)
-'''    at ICSharpCode.CodeConverter.VB.CommentConvertingNodesVisitor.DefaultVisit(SyntaxNode node)
-'''    at Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.VisitObjectCreationExpression(ObjectCreationExpressionSyntax node)
-'''    at Microsoft.CodeAnalysis.CSharp.Syntax.ObjectCreationExpressionSyntax.Accept[TResult](CSharpSyntaxVisitor`1 visitor)
-'''    at ICSharpCode.CodeConverter.VB.CommonConversions.ConvertTopLevelExpression(ExpressionSyntax topLevelExpression)
-'''    at ICSharpCode.CodeConverter.VB.CommonConversions.RemodelVariableDeclaration(VariableDeclarationSyntax declaration)
-'''    at ICSharpCode.CodeConverter.VB.MethodBodyVisitor.VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
-'''    at Microsoft.CodeAnalysis.CSharp.Syntax.LocalDeclarationStatementSyntax.Accept[TResult](CSharpSyntaxVisitor`1 visitor)
-'''    at Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor`1.Visit(SyntaxNode node)
-'''    at ICSharpCode.CodeConverter.VB.CommentConvertingMethodBodyVisitor.ConvertWithTrivia(SyntaxNode node)
-'''    at ICSharpCode.CodeConverter.VB.CommentConvertingMethodBodyVisitor.DefaultVisit(SyntaxNode node)
-''' 
-''' Input: 
-''' 
-			StringBuilder sb = New();
-
-''' 
-            Dim errorCode As Integer = defaultErrorCode
+						("not authorized", 1),
+						("not match", 2),
+						("Access denied", 3),
+						("valid XML", 4),
+						("ID_RSSD", 5)
+				}
+			Dim sb As StringBuilder = New StringBuilder()
+			Dim errorCode As Integer = defaultErrorCode
 
 			For i As Integer = 0 To errorPhrases.Length - 1
-				If subText.IndexOf(errorPhrases(i).phrase) > 0 Then errorCode = i
+				If subText.IndexOf(errorPhrases(i).Phrase) > 0 Then errorCode = i
 			Next
 
 			sb.AppendLine("A problem was encountered while attempting to submit your Call Report to the CDR.")
@@ -155,13 +103,12 @@ Namespace SubmitInstance
 		End Function
 	End Class
 
-	<XmlRoot("SubmitInstanceData", [Namespace]:="http://ffiec.gov/cdr/services/")>
-	Public Class SubmitInstanceDataRequest
-		<XmlElement("userName")>
-		Public Property UserName As String
-		<XmlElement("password")>
-		Public Property Password As String
-		<XmlElement("instanceData")>
-		Public Property InstanceData As String
-	End Class
-End Namespace
+<XmlRoot("SubmitInstanceData", [Namespace]:="http://ffiec.gov/cdr/services/")>
+Public Class SubmitInstanceDataRequest
+	<XmlElement("userName")>
+	Public Property UserName As String
+	<XmlElement("password")>
+	Public Property Password As String
+	<XmlElement("instanceData")>
+	Public Property InstanceData As String
+End Class

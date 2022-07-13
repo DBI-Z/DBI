@@ -8,8 +8,6 @@ Namespace GetInstance.Test
 		Public Sub Write_Sample_Quoted()
 			Dim displayerStub As Mock(Of IDisplayer) = New Mock(Of IDisplayer)
 			Dim writer = New CsvWriter(displayerStub.Object)
-			Dim csv As MemoryStream = New MemoryStream()
-
 			Dim writeFormats As WriteFormat() = {New WriteFormat With {
 																.MtMdrm = "1",
 																.MtContextRef = "2",
@@ -47,10 +45,12 @@ Namespace GetInstance.Test
 																.MtDecimals = "0",
 																.MtData = "false"
 												}}
+			Dim csv As MemoryStream = New MemoryStream
 			writer.Write(writeFormats, csv)
 			Dim lines As String() = New String(writeFormats.Length - 1) {}
 			Dim buffer As ArraySegment(Of Byte) = Nothing
 			csv.TryGetBuffer(buffer)
+
 			Dim sr As StreamReader = New StreamReader(New MemoryStream(buffer.Array))
 
 			For i As Integer = 0 To lines.Length - 1

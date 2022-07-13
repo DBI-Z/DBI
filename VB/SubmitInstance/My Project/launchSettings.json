@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "SubmitInstance": {
+      "commandName": "Project"
+    },
+    "Profile 1": {
+      "commandName": "Project",
+      "commandLineArgs": "a b ffiec_141958_2022-03-31.xml live"
+    }
+  }
+}

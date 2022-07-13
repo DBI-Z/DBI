@@ -1,6 +1,6 @@
 ﻿Imports System.IO
-Imports Moq
 Imports Xunit
+Imports Moq
 
 Namespace GetInstance.Test
 	Public Class CdrTests

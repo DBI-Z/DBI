@@ -1,8 +1,7 @@
 ﻿Imports System.Diagnostics
 Imports System.Globalization
 
-Namespace GetInstance
-	Friend Class ArgumentProcessor
+Friend Class ArgumentProcessor
 		Private args As String()
 		Private displayer As IDisplayer
 
@@ -14,8 +13,9 @@ Namespace GetInstance
 		Public Function GetRequest() As GetInstanceRequest
 			Const expectedArgCount As Integer = 6
 			Dim request As GetInstanceRequest
-			Dim periods As Integer = Nothing, endDate As DateTime = Nothing
+		Dim periods As Integer = Nothing, endDate As Date = Nothing
 
+		If args IsNot Nothing Then
 			If args.Length = expectedArgCount Then
 				request = New GetInstanceRequest With {
 								.Username = args(0),
@@ -27,7 +27,7 @@ Namespace GetInstance
 				If Integer.TryParse(args(4), periods) Then
 					request.NumberOfPriorPeriods = periods
 
-					If DateTime.TryParseExact(args(5), GetInstanceRequest.DateFormat, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, endDate) Then
+					If Date.TryParseExact(args(5), GetInstanceRequest.DateFormat, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, endDate) Then
 						request.ReportingPeriodEndDate = endDate
 					Else
 						displayer.WriteLine($"ReportingPeriodEndDate should have date format {GetInstanceRequest.DateFormat}. Example:")
@@ -46,8 +46,8 @@ Namespace GetInstance
 				PrintArgs(TestRequest)
 				request = Nothing
 			End If
-
-			Return request
+		End If
+		Return request
 		End Function
 
 		Public Sub PrintArgs(ByVal args As GetInstanceRequest)
@@ -75,5 +75,4 @@ Namespace GetInstance
 				}
 			End Get
 		End Property
-	End Class
-End Namespace
+End Class

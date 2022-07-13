@@ -4,6 +4,21 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>SubmitInstance</RootNamespace>
     <TargetFramework>net6.0</TargetFramework>
+    <StartupObject>Sub Main</StartupObject>
+    <ApplicationManifest>My Project\app.manifest</ApplicationManifest>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SimpleSOAPClient" Version="2.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="CDR.ini">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="ffiec_141958_2022-03-31.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 
 </Project>
