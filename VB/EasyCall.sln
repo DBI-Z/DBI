@@ -5,13 +5,15 @@ VisualStudioVersion = 17.2.32505.173
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "GetInstance", "GetInstance\GetInstance.vbproj", "{386E1ABE-0B56-4BA7-B539-5CB1656B2440}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SharedProject1", "SharedProject1\SharedProject1.shproj", "{31171178-A405-4D9F-92A2-5E28792F368E}"
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "GetInstance.Shared", "SharedProject1\GetInstance.Shared.shproj", "{31171178-A405-4D9F-92A2-5E28792F368E}"
 EndProject
 Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "GetInstance.Test", "GetInstance.Test\GetInstance.Test.vbproj", "{F88C0ED5-D464-473A-98B3-2089D43AC77B}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "SubmitInstance", "SubmitInstance\SubmitInstance.vbproj", "{2B07A67B-FAB5-4417-BC1B-86368110AE75}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "SubmitInstance", "SubmitInstance\SubmitInstance.vbproj", "{2B07A67B-FAB5-4417-BC1B-86368110AE75}"
 EndProject
-Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "SubmitInstance.Test", "SubmitInstance.Test\SubmitInstance.Test.vbproj", "{4274FBFA-3FB8-43B1-A1A4-3B9469E06E01}"
+Project("{778DAE3C-4631-46EA-AA77-85C1314464D9}") = "SubmitInstance.Test", "SubmitInstance.Test\SubmitInstance.Test.vbproj", "{4274FBFA-3FB8-43B1-A1A4-3B9469E06E01}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SubmitInstance.Shared", "SubmitInstance.Shared\SubmitInstance.Shared.shproj", "{80F93D6F-8708-4818-B70C-6C8A44719F79}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -43,8 +45,11 @@ Global
 		SolutionGuid = {45E9B7CB-AF5B-4A24-B632-B07A272F9038}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		SubmitInstance.Shared\SubmitInstance.Shared.projitems*{2b07a67b-fab5-4417-bc1b-86368110ae75}*SharedItemsImports = 5
 		SharedProject1\SharedProject1.projitems*{31171178-a405-4d9f-92a2-5e28792f368e}*SharedItemsImports = 13
 		SharedProject1\SharedProject1.projitems*{386e1abe-0b56-4ba7-b539-5cb1656b2440}*SharedItemsImports = 5
+		SubmitInstance.Shared\SubmitInstance.Shared.projitems*{4274fbfa-3fb8-43b1-a1a4-3b9469e06e01}*SharedItemsImports = 5
+		SubmitInstance.Shared\SubmitInstance.Shared.projitems*{80f93d6f-8708-4818-b70c-6c8a44719f79}*SharedItemsImports = 13
 		SharedProject1\SharedProject1.projitems*{f88c0ed5-d464-473a-98b3-2089d43ac77b}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal

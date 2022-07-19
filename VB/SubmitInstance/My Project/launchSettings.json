@@ -3,9 +3,17 @@
     "SubmitInstance": {
       "commandName": "Project"
     },
-    "Profile 1": {
+    "more params": {
+      "commandName": "Project",
+      "commandLineArgs": "a b ffiec_141958_2022-03-31.xml live moreparams"
+    },
+    "exact params": {
       "commandName": "Project",
       "commandLineArgs": "a b ffiec_141958_2022-03-31.xml live"
+    },
+    "less params": {
+      "commandName": "Project",
+      "commandLineArgs": "a b ffiec_141958_2022-03-31.xml"
     }
   }
 }

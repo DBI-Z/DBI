@@ -1,4 +1,3 @@
-﻿
-Public Interface IInstanceReader
-	Function Read(ByVal xmlFileName As String) As String
+﻿Public Interface IInstanceReader
+	Function Read(xmlFileName As String) As String
 End Interface

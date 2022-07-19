@@ -17,8 +17,6 @@
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\SubmitInstance\SubmitInstance.vbproj" />
-  </ItemGroup>
+  <Import Project="..\SubmitInstance.Shared\SubmitInstance.Shared.projitems" Label="Shared" />
 
 </Project>

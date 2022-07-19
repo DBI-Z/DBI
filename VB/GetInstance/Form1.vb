@@ -15,12 +15,6 @@
 		End If
 	End Sub
 
-	Public ReadOnly Property LogDisplayTextbox As TextBox
-		Get
-			Return txtLog
-		End Get
-	End Property
-
 	Private displayer As IDisplayer
 
 	Private Sub Form1_Shown(ByVal sender As Object, ByVal e As EventArgs) Handles MyBase.Shown

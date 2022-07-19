@@ -7,60 +7,67 @@ Public Class Submitter
 		Private reader As IInstanceReader
 		Private poster As IInstancePoster
 		Private settings As ISettings
-		Private builder As ISubmitRequestBuilder
+	Private builder As ISubmitRequestBuilder
+	Private displayer As IDisplayer
 
-		Public Sub New(ByVal reader As IInstanceReader, ByVal poster As IInstancePoster, ByVal settings As ISettings, ByVal builder As ISubmitRequestBuilder)
-			Me.reader = reader
-			Me.poster = poster
-			Me.settings = settings
-			Me.builder = builder
-		End Sub
+	Public Sub New(reader As IInstanceReader, poster As IInstancePoster, settings As ISettings, builder As ISubmitRequestBuilder, displayer As IDisplayer)
+		Me.reader = reader
+		Me.poster = poster
+		Me.settings = settings
+		Me.builder = builder
+		Me.displayer = displayer
+	End Sub
 
-		Public Async Function Submit(ByVal param As SubmitParam) As Task(Of Boolean)
-			Console.WriteLine("Submitting Call Report to the CDR")
-			Console.WriteLine("1. Logging on to CDR")
-			Dim responseBody As XDocument = Nothing
+	Public Async Function Submit(ByVal param As SubmitParam) As Task(Of Boolean)
+		displayer.WriteLine("Submitting Call Report to the CDR")
+		displayer.WriteLine("1. Logging on to CDR")
+		Dim responseBody As XDocument = Nothing
 
-			Try
-				Dim url As String = If(param.Prod, settings.Url, settings.UrlT)
-				Dim action As String = If(param.Prod, settings.SubmitAction, settings.TestSubmitAction)
-				Console.WriteLine("2. Submitting Call Report: ")
-				Console.WriteLine(url)
-				Console.WriteLine(action)
-				Dim fileContents As String = reader.Read(param.Filename)
-
-				If String.IsNullOrWhiteSpace(fileContents) Then
-					Return False
-				End If
-
-				Dim submitBody As XDocument = builder.Build(param, settings.NS, fileContents)
-				responseBody = Await poster.Post(url, action, submitBody)
-				Console.WriteLine(responseBody.ToString())
-				Dim response = New Cdr().ExtractSubmitResponse(responseBody, param.Prod)
-				Dim IsSuccessfulGetInstance As Boolean = response.ReturnCode = 0
-
-				If IsSuccessfulGetInstance Then
-					Return True
-				Else
-					Console.WriteLine("Code: " & response.ReturnCode)
-					Console.WriteLine("Message: " & response.ReturnMessage)
-					Return False
-				End If
-
-			Catch ex As IOException
-				Console.WriteLine(ex.Message)
-				Console.WriteLine($"Error while reading file {param.Filename}")
+		Try
+			Dim fileContents As String = reader.Read(param.Filename)
+			If String.IsNullOrWhiteSpace(fileContents) Then
+				displayer.WriteLine("File not found or empty: " & param.Filename)
 				Return False
-			Catch ex As HttpRequestException
-				Console.WriteLine(ex.Message)
-				Dim errmsg As String = "Unable to connect. Some firewalls require altering permissions to allow EasyCall Report to communicate with the Central Data Repository.  Your information technology department should be made aware that this communication uses HTTPS via port 443." & "Also, the FFIEC CDR system now only supports TLS 1.2;  please insure your operating system supports said."
-				Console.WriteLine(PrepareMsg(errmsg))
+			End If
+
+			Dim url As String = If(param.Prod, settings.Url, settings.UrlT)
+			Dim action As String = If(param.Prod, settings.SubmitAction, settings.TestSubmitAction)
+			displayer.WriteLine("2. Submitting Call Report: ")
+			displayer.WriteLine(url)
+			displayer.WriteLine(action)
+
+			If String.IsNullOrWhiteSpace(fileContents) Then
 				Return False
-			Catch ex As Exception
-				Console.WriteLine(ex.Message)
-				Dim interpretedErrorMessage As String = PrepareMsg(If(responseBody?.ToString(), String.Empty))
-				Console.WriteLine(interpretedErrorMessage)
+			End If
+
+			Dim submitBody As XDocument = builder.Build(param, settings.NS, fileContents)
+			responseBody = Await poster.Post(url, action, submitBody)
+			displayer.WriteLine(responseBody.ToString())
+			Dim response = New Cdr().ExtractSubmitResponse(responseBody, param.Prod)
+			Dim IsSuccessfulGetInstance As Boolean = response.ReturnCode = 0
+
+			If IsSuccessfulGetInstance Then
+				Return True
+			Else
+				displayer.WriteLine("Code: " & response.ReturnCode)
+				displayer.WriteLine("Message: " & response.ReturnMessage)
 				Return False
+			End If
+
+		Catch ex As IOException
+			displayer.WriteLine(ex.Message)
+			displayer.WriteLine($"Error while reading file {param.Filename}")
+			Return False
+		Catch ex As HttpRequestException
+			displayer.WriteLine(ex.Message)
+			Dim errmsg As String = "Unable to connect. Some firewalls require altering permissions to allow EasyCall Report to communicate with the Central Data Repository.  Your information technology department should be made aware that this communication uses HTTPS via port 443." & "Also, the FFIEC CDR system now only supports TLS 1.2;  please insure your operating system supports said."
+			displayer.WriteLine(PrepareMsg(errmsg))
+			Return False
+		Catch ex As Exception
+			displayer.WriteLine(ex.Message)
+			Dim interpretedErrorMessage As String = PrepareMsg(If(responseBody?.ToString(), String.Empty))
+			displayer.WriteLine(interpretedErrorMessage)
+			Return False
 			End Try
 		End Function
 
