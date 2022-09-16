@@ -44,6 +44,10 @@ Friend Class ArgumentProcessor
 	Function ReadIni() As ISettings
 		Dim cdrSettings = New Settings()
 		displayer.WriteLine("Reading settings from CDR.ini")
+		displayer.WriteLine("Current working directory is " & Directory.GetCurrentDirectory())
+		displayer.WriteLine("Base directory is " & AppDomain.CurrentDomain.BaseDirectory())
+		displayer.WriteLine("EntryAssembly location is " & Reflection.Assembly.GetEntryAssembly().Location)
+		displayer.WriteLine("MainModule FileName is " & Process.GetCurrentProcess().MainModule.FileName)
 
 		If Not File.Exists("CDR.ini") Then
 			displayer.WriteLine("CDR.ini cannot be found")
