@@ -1,5 +1,5 @@
 ﻿Public Class Form1
-	Private cmdLineArgs As String()
+	Private argsWithoutUserPass As String()
 	Private displayer As IDisplayer
 	Private cdrSettings As ISettings
 	Private processor As ArgumentProcessor
@@ -10,8 +10,8 @@
 		Dim args As String() = Environment.GetCommandLineArgs
 		If args IsNot Nothing Then
 			If args.Length > 1 Then
-				cmdLineArgs = New String(args.Length - 2) {}
-				Array.Copy(args, 1, cmdLineArgs, 0, cmdLineArgs.Length)
+				argsWithoutUserPass = New String(args.Length) {}
+				Array.Copy(args, 1, argsWithoutUserPass, 2, argsWithoutUserPass.Length - 2)
 			End If
 		End If
 	End Sub
@@ -24,7 +24,7 @@
 
 	Private Sub Form1_Shown(ByVal sender As Object, ByVal e As EventArgs) Handles MyBase.Shown
 		displayer.WriteLine("Welcome to EasyCall Report's Live CDR Call Report Submisson")
-		processor = New ArgumentProcessor(cmdLineArgs, displayer)
+		processor = New ArgumentProcessor(argsWithoutUserPass, displayer)
 
 		Dim request As SubmitParam = processor.GetParam()
 
@@ -32,7 +32,6 @@
 			Fill(ArgumentProcessor.TestParam)
 		Else
 			Fill(request)
-			Submit()
 		End If
 	End Sub
 

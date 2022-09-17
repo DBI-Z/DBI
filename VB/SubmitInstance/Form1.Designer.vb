@@ -42,13 +42,13 @@ Partial Class Form1
 		'txtLog
 		'
 		Me.txtLog.Anchor = CType((((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Bottom) _
-												Or System.Windows.Forms.AnchorStyles.Left) _
-												Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+						Or System.Windows.Forms.AnchorStyles.Left) _
+						Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
 		Me.txtLog.Location = New System.Drawing.Point(12, 12)
 		Me.txtLog.Multiline = True
 		Me.txtLog.Name = "txtLog"
 		Me.txtLog.Size = New System.Drawing.Size(687, 209)
-		Me.txtLog.TabIndex = 20
+		Me.txtLog.TabIndex = 3
 		'
 		'pictureBox1
 		'
@@ -63,7 +63,7 @@ Partial Class Form1
 		'groupBox1
 		'
 		Me.groupBox1.Anchor = CType(((System.Windows.Forms.AnchorStyles.Bottom Or System.Windows.Forms.AnchorStyles.Left) _
-												Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+						Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
 		Me.groupBox1.Controls.Add(Me.Label3)
 		Me.groupBox1.Controls.Add(Me.txtFile)
 		Me.groupBox1.Controls.Add(Me.txtPassword)
@@ -73,7 +73,7 @@ Partial Class Form1
 		Me.groupBox1.Location = New System.Drawing.Point(180, 227)
 		Me.groupBox1.Name = "groupBox1"
 		Me.groupBox1.Size = New System.Drawing.Size(520, 274)
-		Me.groupBox1.TabIndex = 22
+		Me.groupBox1.TabIndex = 0
 		Me.groupBox1.TabStop = False
 		Me.groupBox1.Text = "CDR Login"
 		'
@@ -106,7 +106,7 @@ Partial Class Form1
 		Me.txtUsername.Location = New System.Drawing.Point(231, 88)
 		Me.txtUsername.Name = "txtUsername"
 		Me.txtUsername.Size = New System.Drawing.Size(245, 31)
-		Me.txtUsername.TabIndex = 3
+		Me.txtUsername.TabIndex = 0
 		'
 		'label2
 		'
@@ -143,7 +143,7 @@ Partial Class Form1
 		Me.btnSubmit.Location = New System.Drawing.Point(201, 530)
 		Me.btnSubmit.Name = "btnSubmit"
 		Me.btnSubmit.Size = New System.Drawing.Size(205, 33)
-		Me.btnSubmit.TabIndex = 25
+		Me.btnSubmit.TabIndex = 1
 		Me.btnSubmit.Text = "&Submit Call Report"
 		Me.btnSubmit.UseVisualStyleBackColor = True
 		'
@@ -153,7 +153,7 @@ Partial Class Form1
 		Me.btnClose.Location = New System.Drawing.Point(531, 530)
 		Me.btnClose.Name = "btnClose"
 		Me.btnClose.Size = New System.Drawing.Size(169, 33)
-		Me.btnClose.TabIndex = 26
+		Me.btnClose.TabIndex = 2
 		Me.btnClose.Text = "&Close"
 		Me.btnClose.UseVisualStyleBackColor = True
 		'
