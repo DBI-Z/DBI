@@ -9,7 +9,7 @@
     },
     "exact params": {
       "commandName": "Project",
-      "commandLineArgs": "a b ffiec_141958_2022-03-31.xml live"
+      "commandLineArgs": "ffiec_141958_2022-03-31.xml live"
     },
     "less params": {
       "commandName": "Project",
