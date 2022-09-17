@@ -10,14 +10,13 @@ Friend Class ArgumentProcessor
 	End Sub
 
 	Public Function GetParam() As SubmitParam
-		Const expectedArgCount As Integer = 4
 		Dim param As SubmitParam
 
 		If args Is Nothing Then
 			param = Nothing
 		ElseIf args.Length = 1 Then
 			param = Nothing
-		ElseIf args.Length = expectedArgCount Then
+		ElseIf args.Length = 4 Then
 			param = New SubmitParam
 			param.Username = args(0)
 			param.Password = args(1)
@@ -35,7 +34,7 @@ Friend Class ArgumentProcessor
 			End Select
 		Else
 			param = Nothing
-			displayer.WriteLine("There should be exactly " & expectedArgCount & " arguments. Example:")
+			displayer.WriteLine("There should be exactly 2 arguments. Example:")
 			PrintArgs(TestParam)
 		End If
 		Return param
@@ -63,12 +62,10 @@ Friend Class ArgumentProcessor
 	Private Sub PrintArgs(args As SubmitParam)
 		Dim exeName As String = Process.GetCurrentProcess().MainModule.ModuleName
 		displayer.Write(exeName & " ")
-		displayer.Write(args.Username & " ")
-		displayer.Write(New String("*"c, args.Password.Length) & " ")
 		displayer.Write(args.Filename & " ")
 		displayer.Write(If(args.Prod, "live", "test"))
 		displayer.WriteLine(String.Empty)
-		displayer.WriteLine($"{exeName} Username Password NumberOfPeriods XmlFileName")
+		displayer.WriteLine($"{exeName} NumberOfPeriods XmlFileName")
 	End Sub
 
 	Public Shared ReadOnly Property TestParam As SubmitParam
