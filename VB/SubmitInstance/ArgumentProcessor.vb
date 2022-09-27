@@ -48,11 +48,13 @@ Friend Class ArgumentProcessor
 		displayer.WriteLine("EntryAssembly location is " & Reflection.Assembly.GetEntryAssembly().Location)
 		displayer.WriteLine("MainModule FileName is " & Process.GetCurrentProcess().MainModule.FileName)
 
-		If Not File.Exists("CDR.ini") Then
+		Dim fullFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "CDR.ini")
+
+		If Not File.Exists(fullFilePath) Then
 			displayer.WriteLine("CDR.ini cannot be found")
 		End If
 
-		Using file = New FileStream("CDR.ini", FileMode.Open)
+		Using file = New FileStream(fullFilePath, FileMode.Open)
 			cdrSettings.Load(file)
 		End Using
 
